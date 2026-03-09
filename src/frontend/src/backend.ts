@@ -93,11 +93,28 @@ export interface Lead {
     name: string;
     email: string;
 }
+export interface Product {
+    id: string;
+    tagline: string;
+    name: string;
+    imageUrl: string;
+    category: string;
+    badge: string;
+    price: string;
+}
 export interface backendInterface {
     addLead(name: string, email: string): Promise<void>;
+    addProduct(id: string, name: string, tagline: string, price: string, badge: string, category: string, imageUrl: string): Promise<void>;
+    adminLogin(password: string): Promise<boolean>;
+    deleteProduct(id: string): Promise<boolean>;
     getAllLeads(): Promise<Array<Lead>>;
+    getAllProducts(): Promise<Array<Product>>;
     getLead(email: string): Promise<Lead>;
+    getProduct(id: string): Promise<Product | null>;
+    seedProducts(newProducts: Array<Product>): Promise<boolean>;
+    updateProduct(id: string, name: string, tagline: string, price: string, badge: string, category: string, imageUrl: string): Promise<boolean>;
 }
+import type { Product as _Product } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async addLead(arg0: string, arg1: string): Promise<void> {
@@ -111,6 +128,48 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.addLead(arg0, arg1);
+            return result;
+        }
+    }
+    async addProduct(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+            return result;
+        }
+    }
+    async adminLogin(arg0: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.adminLogin(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.adminLogin(arg0);
+            return result;
+        }
+    }
+    async deleteProduct(arg0: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteProduct(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteProduct(arg0);
             return result;
         }
     }
@@ -128,6 +187,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getAllProducts(): Promise<Array<Product>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllProducts();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllProducts();
+            return result;
+        }
+    }
     async getLead(arg0: string): Promise<Lead> {
         if (this.processError) {
             try {
@@ -142,6 +215,51 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getProduct(arg0: string): Promise<Product | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getProduct(arg0);
+                return from_candid_opt_n1(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getProduct(arg0);
+            return from_candid_opt_n1(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async seedProducts(arg0: Array<Product>): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.seedProducts(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.seedProducts(arg0);
+            return result;
+        }
+    }
+    async updateProduct(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+            return result;
+        }
+    }
+}
+function from_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Product]): Product | null {
+    return value.length === 0 ? null : value[0];
 }
 export interface CreateActorOptions {
     agent?: Agent;

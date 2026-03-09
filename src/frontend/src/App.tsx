@@ -16,20 +16,24 @@ import {
   Mail,
   Menu,
   MessageCircle,
+  Pencil,
+  PlusCircle,
   Send,
   Shield,
   ShoppingBag,
   Star,
+  Trash2,
   X,
   Youtube,
 } from "lucide-react";
 import { motion } from "motion/react";
 import type { Variants } from "motion/react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { SiInstagram } from "react-icons/si";
 import { toast } from "sonner";
 
+import type { Product } from "@/backend.d";
 import { useActor } from "@/hooks/useActor";
 
 import {
@@ -38,6 +42,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,6 +63,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -60,11 +75,21 @@ import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Toaster } from "@/components/ui/sonner";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -73,13 +98,115 @@ const WHATSAPP_URL = "https://wa.me/message/GAVCZG4DDEMMH1";
 const PRODUCT_IMAGE =
   "https://images.unsplash.com/photo-1763667926453-6a992d38ac43?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2MzR8MHwxfHNlYXJjaHwzfHxtaW5pbWFsaXN0JTIwcGlsbCUyMGJvdHRsZSUyMG1lZGljYXRpb24lMjBwYWNrYWdpbmd8ZW58MHx8fHwxNzczMDI1MDA0fDA&ixlib=rb-4.1.0&q=85";
 
+const DEFAULT_PRODUCTS: Product[] = [
+  {
+    id: "1",
+    name: "Erectile Dysfunction Treatment",
+    tagline: "Clinically proven. Discreetly delivered.",
+    price: "from €29",
+    badge: "Best Seller",
+    category: "Men's Health",
+    imageUrl: PRODUCT_IMAGE,
+  },
+  {
+    id: "2",
+    name: "Testosterone Boost",
+    tagline: "Restore energy, drive and confidence.",
+    price: "from €45",
+    badge: "",
+    category: "Men's Health",
+    imageUrl: PRODUCT_IMAGE,
+  },
+  {
+    id: "3",
+    name: "Premature Ejaculation",
+    tagline: "Science-backed solutions for lasting intimacy.",
+    price: "from €35",
+    badge: "",
+    category: "Men's Health",
+    imageUrl: PRODUCT_IMAGE,
+  },
+  {
+    id: "4",
+    name: "Finasteride Treatment",
+    tagline: "Stop hair loss with clinically proven finasteride.",
+    price: "from €39",
+    badge: "Best Seller",
+    category: "Hair Loss",
+    imageUrl: PRODUCT_IMAGE,
+  },
+  {
+    id: "5",
+    name: "Minoxidil Solution",
+    tagline: "Stimulate regrowth with topical minoxidil.",
+    price: "from €25",
+    badge: "",
+    category: "Hair Loss",
+    imageUrl: PRODUCT_IMAGE,
+  },
+  {
+    id: "6",
+    name: "Hair Restoration Kit",
+    tagline: "Complete 3-step hair restoration programme.",
+    price: "from €59",
+    badge: "",
+    category: "Hair Loss",
+    imageUrl: PRODUCT_IMAGE,
+  },
+  {
+    id: "7",
+    name: "Medically Supervised Weight Loss",
+    tagline: "Doctor-guided, sustainable weight loss.",
+    price: "from €49",
+    badge: "",
+    category: "Weight Management",
+    imageUrl: PRODUCT_IMAGE,
+  },
+  {
+    id: "8",
+    name: "Appetite Control",
+    tagline: "Clinically approved appetite suppressants.",
+    price: "from €42",
+    badge: "",
+    category: "Weight Management",
+    imageUrl: PRODUCT_IMAGE,
+  },
+  {
+    id: "9",
+    name: "Vitamin & Supplement Pack",
+    tagline: "Personalised European wellness supplements.",
+    price: "from €29",
+    badge: "",
+    category: "General Wellness",
+    imageUrl: PRODUCT_IMAGE,
+  },
+  {
+    id: "10",
+    name: "Stress & Sleep Support",
+    tagline: "Medical-grade sleep and stress relief.",
+    price: "from €35",
+    badge: "",
+    category: "General Wellness",
+    imageUrl: PRODUCT_IMAGE,
+  },
+];
+
 // ─── Form Types ───────────────────────────────────────────────────────────────
 
-interface FormData {
+interface ConsultationFormData {
   fullName: string;
   email: string;
   treatment: string;
   message: string;
+}
+
+interface ProductFormData {
+  name: string;
+  tagline: string;
+  price: string;
+  badge: string;
+  category: string;
+  imageUrl: string;
 }
 
 // ─── Animation Variants ──────────────────────────────────────────────────────
@@ -232,17 +359,15 @@ function Navigation() {
 
           {/* Mobile Hamburger */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden"
-                data-ocid="nav.toggle"
-                aria-label="Open menu"
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
+            <button
+              type="button"
+              className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-muted transition-colors"
+              data-ocid="nav.toggle"
+              aria-label="Open menu"
+              onClick={() => setMobileOpen(true)}
+            >
+              <Menu className="h-5 w-5" />
+            </button>
             <SheetContent side="right" className="w-72">
               <SheetHeader>
                 <SheetTitle className="flex items-center">
@@ -646,38 +771,30 @@ function HowItWorks() {
 
 // ─── Product Bento Grid (Home) ───────────────────────────────────────────────
 
-interface HomeProduct {
-  id: number;
-  name: string;
-  tagline: string;
-  price: string;
-  badge: string | null;
-}
-
 function ProductGrid() {
-  const products: HomeProduct[] = [
-    {
-      id: 1,
-      name: "Erectile Dysfunction",
-      tagline: "Clinically proven. Discreetly delivered.",
-      price: "from €29/mo",
-      badge: "Best Seller",
-    },
-    {
-      id: 2,
-      name: "Hair Loss",
-      tagline: "Stop hair loss with science-backed treatment.",
-      price: "from €39/mo",
-      badge: null,
-    },
-    {
-      id: 3,
-      name: "Weight Management",
-      tagline: "Medically supervised weight loss programmes.",
-      price: "from €49/mo",
-      badge: null,
-    },
-  ];
+  const { actor, isFetching } = useActor();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!actor || isFetching) return;
+    let cancelled = false;
+    setLoading(true);
+    actor
+      .getAllProducts()
+      .then((result) => {
+        if (!cancelled) {
+          setProducts(result.slice(0, 3));
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [actor, isFetching]);
 
   return (
     <section id="products" className="py-20 md:py-32 bg-background">
@@ -704,71 +821,93 @@ function ProductGrid() {
           </p>
         </motion.div>
 
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
-        >
-          {products.map((product, index) => (
-            <motion.div
-              key={product.id}
-              variants={fadeUp}
-              data-ocid={`products.item.${index + 1}`}
-            >
-              <Card className="h-full flex flex-col border border-border hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer overflow-hidden rounded-xl">
-                <div className="relative overflow-hidden aspect-video">
-                  <img
-                    src={PRODUCT_IMAGE}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                  {product.badge && (
-                    <div className="absolute top-3 left-3">
-                      <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-accent text-white shadow-sm">
-                        {product.badge}
-                      </span>
-                    </div>
-                  )}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="rounded-xl border border-border overflow-hidden"
+                data-ocid={`products.item.${i}`}
+              >
+                <Skeleton className="aspect-video w-full" />
+                <div className="p-6 flex flex-col gap-3">
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-5 w-1/3" />
+                  <Skeleton className="h-10 w-full rounded-full mt-2" />
                 </div>
-                <CardHeader className="pb-2">
-                  <CardTitle
-                    className="text-xl text-foreground"
-                    style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-                  >
-                    {product.name}
-                  </CardTitle>
-                  <CardDescription className="text-sm text-muted-foreground">
-                    {product.tagline}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <p className="text-lg font-semibold text-primary">
-                    {product.price}
-                  </p>
-                </CardContent>
-                <CardFooter className="flex flex-col gap-2">
-                  <Button
-                    asChild
-                    className="w-full rounded-full bg-primary text-white hover:bg-primary/90 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
-                    data-ocid={`products.buy_now_button.${index + 1}`}
-                  >
-                    <a
-                      href={WHATSAPP_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
+              </div>
+            ))}
+          </div>
+        ) : (
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          >
+            {products.map((product, index) => (
+              <motion.div
+                key={product.id}
+                variants={fadeUp}
+                data-ocid={`products.item.${index + 1}`}
+              >
+                <Card className="h-full flex flex-col border border-border hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer overflow-hidden rounded-xl">
+                  <div className="relative overflow-hidden aspect-video">
+                    <img
+                      src={product.imageUrl || PRODUCT_IMAGE}
+                      alt={product.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                    {product.badge && (
+                      <div className="absolute top-3 left-3">
+                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-accent text-white shadow-sm">
+                          {product.badge}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <CardHeader className="pb-2">
+                    <CardTitle
+                      className="text-xl text-foreground"
+                      style={{
+                        fontFamily: "'Playfair Display', Georgia, serif",
+                      }}
                     >
-                      <MessageCircle className="mr-2 h-4 w-4" />
-                      Buy Now
-                    </a>
-                  </Button>
-                </CardFooter>
-              </Card>
-            </motion.div>
-          ))}
-        </motion.div>
+                      {product.name}
+                    </CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">
+                      {product.tagline}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1">
+                    <p className="text-lg font-semibold text-primary">
+                      {product.price}
+                    </p>
+                  </CardContent>
+                  <CardFooter className="flex flex-col gap-2">
+                    <Button
+                      asChild
+                      className="w-full rounded-full bg-primary text-white hover:bg-primary/90 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
+                      data-ocid={`products.buy_now_button.${index + 1}`}
+                    >
+                      <a
+                        href={WHATSAPP_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <MessageCircle className="mr-2 h-4 w-4" />
+                        Buy Now
+                      </a>
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
 
         <motion.div
           variants={fadeUp}
@@ -789,6 +928,165 @@ function ProductGrid() {
               View All Products
             </Link>
           </Button>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Reviews Section ─────────────────────────────────────────────────────────
+
+function ReviewsSection() {
+  const profilePhotos = [
+    "/assets/uploads/IMG_8239-1.jpeg",
+    "/assets/uploads/IMG_8242-2.jpeg",
+    "/assets/uploads/IMG_8238-3.jpeg",
+    "/assets/uploads/IMG_8241-4.jpeg",
+    "/assets/uploads/IMG_8240-5.jpeg",
+  ];
+
+  const reviews = [
+    {
+      id: 1,
+      name: "James T.",
+      location: "London, UK",
+      rating: 5,
+      date: "March 2026",
+      product: "Erectile Dysfunction Treatment",
+      review:
+        "Honestly one of the best decisions I've made. The whole process was completely private and the medication arrived within 4 days in a plain box. Already seeing real results after 3 weeks. Highly recommend to any man who needs this.",
+      photo: profilePhotos[0],
+    },
+    {
+      id: 2,
+      name: "Marco B.",
+      location: "Milan, Italy",
+      rating: 5,
+      date: "February 2026",
+      product: "Erectile Dysfunction Treatment",
+      review:
+        "I was nervous at first but the online consultation was so easy and discreet. The doctor responded within a few hours and explained everything clearly. The treatment works great and my confidence is completely back.",
+      photo: profilePhotos[1],
+    },
+    {
+      id: 3,
+      name: "David H.",
+      location: "Berlin, Germany",
+      rating: 4,
+      date: "January 2026",
+      product: "Erectile Dysfunction Treatment",
+      review:
+        "Very professional service. The packaging was totally discreet, no one would know what's inside. Delivery was fast and the medication is exactly what was prescribed. Would definitely order again.",
+      photo: profilePhotos[2],
+    },
+    {
+      id: 4,
+      name: "Stefan M.",
+      location: "Vienna, Austria",
+      rating: 5,
+      date: "March 2026",
+      product: "Erectile Dysfunction Treatment",
+      review:
+        "Cure Europe has been life-changing for me. No embarrassing pharmacy visits, no waiting rooms. Just a quick online form, a doctor's response, and my treatment delivered to my door. The quality of the medication is excellent.",
+      photo: profilePhotos[3],
+    },
+  ];
+
+  const STAR_KEYS = ["s1", "s2", "s3", "s4", "s5"] as const;
+
+  const renderStars = (count: number) =>
+    STAR_KEYS.map((key, i) => (
+      <Star
+        key={key}
+        className={`h-4 w-4 ${i < count ? "fill-accent text-accent" : "fill-muted text-muted"}`}
+      />
+    ));
+
+  return (
+    <section
+      id="reviews"
+      className="py-20 md:py-32 bg-secondary"
+      data-ocid="reviews.section"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
+          <span className="text-xs uppercase tracking-widest font-semibold text-accent">
+            Customer Reviews
+          </span>
+          <h2
+            className="text-4xl md:text-5xl font-medium tracking-tight mt-3 text-foreground"
+            style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+          >
+            What Our Patients Say
+          </h2>
+          <p className="mt-4 text-base text-muted-foreground max-w-lg mx-auto">
+            Real experiences from verified customers across Europe.
+          </p>
+          {/* Aggregate rating */}
+          <div className="flex items-center justify-center gap-3 mt-6">
+            <div className="flex items-center gap-1">{renderStars(5)}</div>
+            <span className="text-lg font-bold text-foreground">4.9 / 5</span>
+            <span className="text-sm text-muted-foreground">
+              · Based on 12,400+ reviews
+            </span>
+          </div>
+        </motion.div>
+
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+        >
+          {reviews.map((review, index) => (
+            <motion.div
+              key={review.id}
+              variants={fadeUp}
+              data-ocid={`reviews.item.${index + 1}`}
+              className="bg-white rounded-2xl p-6 border border-border shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col gap-4"
+            >
+              {/* Stars */}
+              <div className="flex items-center gap-0.5">
+                {renderStars(review.rating)}
+              </div>
+
+              {/* Review text */}
+              <p className="text-sm leading-relaxed text-foreground/80 flex-1">
+                "{review.review}"
+              </p>
+
+              {/* Product tag */}
+              <div>
+                <span className="inline-block px-2.5 py-1 rounded-full text-xs font-medium bg-primary/8 text-primary border border-primary/15">
+                  {review.product}
+                </span>
+              </div>
+
+              {/* Author */}
+              <div className="flex items-center gap-3 pt-2 border-t border-border">
+                <img
+                  src={review.photo}
+                  alt={review.name}
+                  className="w-10 h-10 rounded-full object-cover shrink-0 border border-border"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {review.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {review.location} · {review.date}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </motion.div>
       </div>
     </section>
@@ -919,7 +1217,7 @@ function LeadCaptureForm() {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<FormData>({
+  } = useForm<ConsultationFormData>({
     defaultValues: { fullName: "", email: "", treatment: "", message: "" },
   });
 
@@ -934,7 +1232,7 @@ function LeadCaptureForm() {
     other: "Other",
   };
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: ConsultationFormData) => {
     if (!treatmentValue) {
       toast.error("Please select a treatment interest.");
       return;
@@ -1472,19 +1770,6 @@ function Footer() {
           <p className="text-xs text-white/40">
             CE Certified Medical Device Platform
           </p>
-          <p className="text-xs text-white/40">
-            Built with love using{" "}
-            <a
-              href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(
-                typeof window !== "undefined" ? window.location.hostname : "",
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-white/70 transition-colors underline underline-offset-2"
-            >
-              caffeine.ai
-            </a>
-          </p>
         </div>
       </div>
     </footer>
@@ -1499,98 +1784,6 @@ type ProductCategory =
   | "Hair Loss"
   | "Weight Management"
   | "General Wellness";
-
-interface CatalogProduct {
-  id: number;
-  name: string;
-  tagline: string;
-  price: string;
-  badge: string | null;
-  category: Exclude<ProductCategory, "All">;
-}
-
-const CATALOG_PRODUCTS: CatalogProduct[] = [
-  {
-    id: 1,
-    name: "Erectile Dysfunction Treatment",
-    tagline: "Clinically proven. Discreetly delivered.",
-    price: "from €29/mo",
-    badge: "Best Seller",
-    category: "Men's Health",
-  },
-  {
-    id: 2,
-    name: "Testosterone Boost",
-    tagline: "Restore energy, drive and confidence.",
-    price: "from €45/mo",
-    badge: null,
-    category: "Men's Health",
-  },
-  {
-    id: 3,
-    name: "Premature Ejaculation",
-    tagline: "Science-backed solutions for lasting intimacy.",
-    price: "from €35/mo",
-    badge: null,
-    category: "Men's Health",
-  },
-  {
-    id: 4,
-    name: "Finasteride Treatment",
-    tagline: "Stop hair loss with clinically proven finasteride.",
-    price: "from €39/mo",
-    badge: "Best Seller",
-    category: "Hair Loss",
-  },
-  {
-    id: 5,
-    name: "Minoxidil Solution",
-    tagline: "Stimulate regrowth with topical minoxidil.",
-    price: "from €25/mo",
-    badge: null,
-    category: "Hair Loss",
-  },
-  {
-    id: 6,
-    name: "Hair Restoration Kit",
-    tagline: "Complete 3-step hair restoration programme.",
-    price: "from €59/mo",
-    badge: null,
-    category: "Hair Loss",
-  },
-  {
-    id: 7,
-    name: "Medically Supervised Weight Loss",
-    tagline: "Doctor-guided, sustainable weight loss.",
-    price: "from €49/mo",
-    badge: null,
-    category: "Weight Management",
-  },
-  {
-    id: 8,
-    name: "Appetite Control",
-    tagline: "Clinically approved appetite suppressants.",
-    price: "from €42/mo",
-    badge: null,
-    category: "Weight Management",
-  },
-  {
-    id: 9,
-    name: "Vitamin & Supplement Pack",
-    tagline: "Personalised European wellness supplements.",
-    price: "from €29/mo",
-    badge: null,
-    category: "General Wellness",
-  },
-  {
-    id: 10,
-    name: "Stress & Sleep Support",
-    tagline: "Medical-grade sleep and stress relief.",
-    price: "from €35/mo",
-    badge: null,
-    category: "General Wellness",
-  },
-];
 
 const CATEGORY_TABS: ProductCategory[] = [
   "All",
@@ -1609,12 +1802,35 @@ const CATEGORY_OCIDS: Record<ProductCategory, string> = {
 };
 
 function ProductsPage() {
+  const { actor, isFetching } = useActor();
   const [activeCategory, setActiveCategory] = useState<ProductCategory>("All");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!actor || isFetching) return;
+    let cancelled = false;
+    setLoading(true);
+    actor
+      .getAllProducts()
+      .then((result) => {
+        if (!cancelled) {
+          setProducts(result);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [actor, isFetching]);
 
   const filtered =
     activeCategory === "All"
-      ? CATALOG_PRODUCTS
-      : CATALOG_PRODUCTS.filter((p) => p.category === activeCategory);
+      ? products
+      : products.filter((p) => p.category === activeCategory);
 
   return (
     <div className="min-h-screen bg-background">
@@ -1695,7 +1911,25 @@ function ProductsPage() {
       {/* Product Grid */}
       <section className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="rounded-xl border border-border overflow-hidden"
+                  data-ocid={`products_page.item.${i}`}
+                >
+                  <Skeleton className="aspect-video w-full" />
+                  <div className="p-6 flex flex-col gap-3">
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-5 w-1/3" />
+                    <Skeleton className="h-10 w-full rounded-full mt-2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
             <div
               data-ocid="products_page.empty_state"
               className="flex flex-col items-center justify-center py-24 text-center"
@@ -1731,7 +1965,7 @@ function ProductsPage() {
                     {/* Image */}
                     <div className="relative overflow-hidden aspect-video">
                       <img
-                        src={PRODUCT_IMAGE}
+                        src={product.imageUrl || PRODUCT_IMAGE}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         loading="lazy"
@@ -1808,6 +2042,7 @@ function HomePage() {
       <ProblemSolution />
       <HowItWorks />
       <ProductGrid />
+      <ReviewsSection />
       <MedicalExperts />
       <LeadCaptureForm />
       <FAQSection />
@@ -1816,7 +2051,7 @@ function HomePage() {
   );
 }
 
-// ─── Layout ───────────────────────────────────────────────────────────────────
+// ─── Public Layout ────────────────────────────────────────────────────────────
 
 function RootLayout() {
   return (
@@ -1830,25 +2065,708 @@ function RootLayout() {
   );
 }
 
+// ─── Admin Panel ──────────────────────────────────────────────────────────────
+
+const ADMIN_CATEGORIES: ProductCategory[] = [
+  "Men's Health",
+  "Hair Loss",
+  "Weight Management",
+  "General Wellness",
+];
+
+// Product Form Sheet
+interface ProductFormSheetProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  editingProduct: Product | null;
+  onSaved: () => void;
+}
+
+function ProductFormSheet({
+  open,
+  onOpenChange,
+  editingProduct,
+  onSaved,
+}: ProductFormSheetProps) {
+  const { actor } = useActor();
+  const [isSaving, setIsSaving] = useState(false);
+  const [categoryValue, setCategoryValue] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm<ProductFormData>({
+    defaultValues: {
+      name: "",
+      tagline: "",
+      price: "",
+      badge: "",
+      category: "",
+      imageUrl: "",
+    },
+  });
+
+  // Populate form when editing
+  useEffect(() => {
+    if (editingProduct) {
+      setValue("name", editingProduct.name);
+      setValue("tagline", editingProduct.tagline);
+      setValue("price", editingProduct.price);
+      setValue("badge", editingProduct.badge);
+      setValue("category", editingProduct.category);
+      setValue("imageUrl", editingProduct.imageUrl);
+      setCategoryValue(editingProduct.category);
+    } else {
+      reset();
+      setCategoryValue("");
+    }
+  }, [editingProduct, setValue, reset]);
+
+  const onSubmit = async (data: ProductFormData) => {
+    if (!actor) return;
+    if (!categoryValue) {
+      toast.error("Please select a category.");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      if (editingProduct) {
+        await actor.updateProduct(
+          editingProduct.id,
+          data.name,
+          data.tagline,
+          data.price,
+          data.badge,
+          categoryValue,
+          data.imageUrl,
+        );
+      } else {
+        const newId = String(Date.now());
+        await actor.addProduct(
+          newId,
+          data.name,
+          data.tagline,
+          data.price,
+          data.badge,
+          categoryValue,
+          data.imageUrl,
+        );
+      }
+      toast.success("Product saved");
+      onOpenChange(false);
+      onSaved();
+    } catch {
+      toast.error("Failed to save product. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetHeader className="pb-4">
+          <SheetTitle>
+            {editingProduct ? "Edit Product" : "Add New Product"}
+          </SheetTitle>
+          <SheetDescription>
+            {editingProduct
+              ? "Update the product details below."
+              : "Fill in the product details to add it to your catalogue."}
+          </SheetDescription>
+        </SheetHeader>
+
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-5 px-4 py-2"
+        >
+          {/* Name */}
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="admin-name">Name</Label>
+            <Input
+              id="admin-name"
+              placeholder="e.g. Erectile Dysfunction Treatment"
+              data-ocid="admin.form.name_input"
+              {...register("name", { required: "Name is required" })}
+            />
+            {errors.name && (
+              <p className="text-xs text-destructive">{errors.name.message}</p>
+            )}
+          </div>
+
+          {/* Tagline */}
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="admin-tagline">Tagline</Label>
+            <Input
+              id="admin-tagline"
+              placeholder="Short description"
+              data-ocid="admin.form.tagline_input"
+              {...register("tagline", { required: "Tagline is required" })}
+            />
+            {errors.tagline && (
+              <p className="text-xs text-destructive">
+                {errors.tagline.message}
+              </p>
+            )}
+          </div>
+
+          {/* Price */}
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="admin-price">Price</Label>
+            <Input
+              id="admin-price"
+              placeholder='e.g. "from €29"'
+              data-ocid="admin.form.price_input"
+              {...register("price", { required: "Price is required" })}
+            />
+            {errors.price && (
+              <p className="text-xs text-destructive">{errors.price.message}</p>
+            )}
+          </div>
+
+          {/* Badge */}
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="admin-badge">Badge</Label>
+            <Input
+              id="admin-badge"
+              placeholder="e.g. Best Seller (leave empty for no badge)"
+              data-ocid="admin.form.badge_input"
+              {...register("badge")}
+            />
+          </div>
+
+          {/* Category */}
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="admin-category">Category</Label>
+            <Select
+              value={categoryValue}
+              onValueChange={(val) => {
+                setCategoryValue(val);
+                setValue("category", val);
+              }}
+            >
+              <SelectTrigger
+                id="admin-category"
+                data-ocid="admin.form.category_select"
+              >
+                <SelectValue placeholder="Select a category..." />
+              </SelectTrigger>
+              <SelectContent>
+                {ADMIN_CATEGORIES.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Image URL */}
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="admin-image">Image URL</Label>
+            <Input
+              id="admin-image"
+              placeholder="https://..."
+              data-ocid="admin.form.image_input"
+              {...register("imageUrl")}
+            />
+          </div>
+
+          <SheetFooter className="flex-row gap-3 pt-2 px-0">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => onOpenChange(false)}
+              data-ocid="admin.form.cancel_button"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSaving}
+              className="flex-1 bg-primary text-white hover:bg-primary/90"
+              data-ocid="admin.form.save_button"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Product"
+              )}
+            </Button>
+          </SheetFooter>
+        </form>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+// Admin Dashboard
+interface AdminDashboardProps {
+  onLogout: () => void;
+}
+
+function AdminDashboard({ onLogout }: AdminDashboardProps) {
+  const { actor, isFetching } = useActor();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const fetchProducts = useCallback(async () => {
+    if (!actor) return;
+    setLoadingProducts(true);
+    try {
+      const result = await actor.getAllProducts();
+      if (result.length === 0) {
+        // Seed default products on first load
+        await actor.seedProducts(DEFAULT_PRODUCTS);
+        const seeded = await actor.getAllProducts();
+        setProducts(seeded);
+      } else {
+        setProducts(result);
+      }
+    } catch {
+      toast.error("Failed to load products.");
+    } finally {
+      setLoadingProducts(false);
+    }
+  }, [actor]);
+
+  useEffect(() => {
+    if (!actor || isFetching) return;
+    fetchProducts();
+  }, [actor, isFetching, fetchProducts]);
+
+  const handleEditClick = (product: Product) => {
+    setEditingProduct(product);
+    setFormOpen(true);
+  };
+
+  const handleAddClick = () => {
+    setEditingProduct(null);
+    setFormOpen(true);
+  };
+
+  const handleFormSaved = () => {
+    fetchProducts();
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!actor || !deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await actor.deleteProduct(deleteTarget.id);
+      toast.success("Product deleted");
+      setDeleteTarget(null);
+      fetchProducts();
+    } catch {
+      toast.error("Failed to delete product.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Admin Header */}
+      <header className="bg-white border-b border-border sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-3">
+              <img
+                src="/assets/uploads/IMG_4459-1.jpeg"
+                alt="Cure Pharmaceuticals"
+                className="h-9 w-auto object-contain"
+              />
+              <div>
+                <p
+                  className="text-sm font-semibold text-foreground leading-tight"
+                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                >
+                  Cure Pharmacy Europe
+                </p>
+                <p className="text-xs text-muted-foreground">Admin Panel</p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onLogout}
+              data-ocid="admin.logout_button"
+            >
+              Logout
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Dashboard Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Page header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Products</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Manage your product catalogue
+            </p>
+          </div>
+          <Button
+            onClick={handleAddClick}
+            className="bg-primary text-white hover:bg-primary/90"
+            data-ocid="admin.add_button"
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add New Product
+          </Button>
+        </div>
+
+        {/* Products Table */}
+        <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
+          {loadingProducts ? (
+            <div
+              className="flex flex-col items-center justify-center py-16"
+              data-ocid="admin.loading_state"
+            >
+              <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
+              <p className="text-sm text-muted-foreground">
+                Loading products...
+              </p>
+            </div>
+          ) : products.length === 0 ? (
+            <div
+              className="flex flex-col items-center justify-center py-16 text-center"
+              data-ocid="admin.product.empty_state"
+            >
+              <ShoppingBag className="h-10 w-10 text-muted-foreground mb-3" />
+              <p className="text-base font-medium text-foreground">
+                No products yet
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Click "Add New Product" to get started.
+              </p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/40">
+                  <TableHead className="w-[280px]">Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead>Badge</TableHead>
+                  <TableHead className="text-right w-[140px]">
+                    Actions
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {products.map((product, index) => (
+                  <TableRow
+                    key={product.id}
+                    data-ocid={`admin.product.item.${index + 1}`}
+                    className="hover:bg-muted/20 transition-colors"
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={product.imageUrl || PRODUCT_IMAGE}
+                          alt={product.name}
+                          className="w-10 h-10 rounded-lg object-cover shrink-0 border border-border"
+                        />
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            {product.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate max-w-[180px]">
+                            {product.tagline}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-muted-foreground">
+                        {product.category}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm font-medium text-primary">
+                        {product.price}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {product.badge ? (
+                        <Badge className="bg-accent/15 text-accent border-accent/30 text-xs">
+                          {product.badge}
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                          onClick={() => handleEditClick(product)}
+                          data-ocid={`admin.product.edit_button.${index + 1}`}
+                          aria-label={`Edit ${product.name}`}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => setDeleteTarget(product)}
+                          data-ocid={`admin.product.delete_button.${index + 1}`}
+                          aria-label={`Delete ${product.name}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+
+        {/* Product count */}
+        {!loadingProducts && products.length > 0 && (
+          <p className="text-xs text-muted-foreground mt-3">
+            {products.length} product{products.length !== 1 ? "s" : ""} total
+          </p>
+        )}
+      </main>
+
+      {/* Product Form Sheet */}
+      <ProductFormSheet
+        open={formOpen}
+        onOpenChange={(open) => {
+          setFormOpen(open);
+          if (!open) setEditingProduct(null);
+        }}
+        editingProduct={editingProduct}
+        onSaved={handleFormSaved}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Product</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete{" "}
+              <strong>{deleteTarget?.name}</strong>? This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              data-ocid="admin.delete.cancel_button"
+              disabled={isDeleting}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="bg-destructive text-white hover:bg-destructive/90"
+              data-ocid="admin.delete.confirm_button"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+}
+
+// Admin Login
+function AdminLogin({
+  onLoginSuccess,
+}: {
+  onLoginSuccess: () => void;
+}) {
+  const { actor, isFetching } = useActor();
+  const [password, setPassword] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [loginError, setLoginError] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!actor || !password) return;
+    setIsLoggingIn(true);
+    setLoginError(false);
+    try {
+      const success = await actor.adminLogin(password);
+      if (success) {
+        onLoginSuccess();
+      } else {
+        setLoginError(true);
+      }
+    } catch {
+      setLoginError(true);
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        {/* Logo */}
+        <div className="flex flex-col items-center gap-3 mb-8">
+          <img
+            src="/assets/uploads/IMG_4459-1.jpeg"
+            alt="Cure Pharmaceuticals"
+            className="h-14 w-auto object-contain"
+          />
+          <div className="text-center">
+            <p
+              className="text-lg font-semibold text-foreground"
+              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+            >
+              Cure Pharmacy Europe
+            </p>
+            <p className="text-sm text-muted-foreground">Admin Panel</p>
+          </div>
+        </div>
+
+        <Card className="shadow-md border border-border">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg text-center">Sign In</CardTitle>
+            <CardDescription className="text-center">
+              Enter your admin password to continue
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="admin-password">Password</Label>
+                <Input
+                  id="admin-password"
+                  type="password"
+                  placeholder="Enter admin password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setLoginError(false);
+                  }}
+                  data-ocid="admin.password_input"
+                  autoComplete="current-password"
+                  disabled={isFetching}
+                />
+              </div>
+
+              {loginError && (
+                <p
+                  className="text-sm text-destructive text-center"
+                  data-ocid="admin.error_state"
+                >
+                  Incorrect password. Please try again.
+                </p>
+              )}
+
+              <Button
+                type="submit"
+                disabled={isLoggingIn || isFetching || !password}
+                className="w-full bg-primary text-white hover:bg-primary/90"
+                data-ocid="admin.submit_button"
+              >
+                {isLoggingIn || isFetching ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isFetching ? "Connecting..." : "Signing in..."}
+                  </>
+                ) : (
+                  "Sign In"
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// Admin Page (combines login + dashboard)
+function AdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  if (!isAuthenticated) {
+    return <AdminLogin onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
+
+  return <AdminDashboard onLogout={() => setIsAuthenticated(false)} />;
+}
+
+// Admin Layout (standalone — no banner/nav/footer)
+function AdminLayout() {
+  return (
+    <>
+      <Toaster richColors position="top-center" />
+      <AdminPage />
+    </>
+  );
+}
+
 // ─── Router Setup ─────────────────────────────────────────────────────────────
 
-const rootRoute = createRootRoute({
+const rootRoute = createRootRoute();
+
+const publicLayoutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: "public",
   component: RootLayout,
 });
 
 const homeRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => publicLayoutRoute,
   path: "/",
   component: HomePage,
 });
 
 const productsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => publicLayoutRoute,
   path: "/products",
   component: ProductsPage,
 });
 
-const routeTree = rootRoute.addChildren([homeRoute, productsRoute]);
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/Alexx",
+  component: AdminLayout,
+});
+
+const routeTree = rootRoute.addChildren([
+  publicLayoutRoute.addChildren([homeRoute, productsRoute]),
+  adminRoute,
+]);
 
 const router = createRouter({ routeTree });
 

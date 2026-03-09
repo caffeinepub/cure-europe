@@ -1,0 +1,123 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.625rem;
+
+    /* ─── Cure Europe Design Tokens ─────────────────────────────── */
+    /* Background: #FFFFFF */
+    --background: 1 0 0;
+    /* Foreground: #1F2937 Charcoal */
+    --foreground: 0.27 0.022 255;
+    /* Card: white */
+    --card: 1 0 0;
+    --card-foreground: 0.27 0.022 255;
+    /* Popover */
+    --popover: 1 0 0;
+    --popover-foreground: 0.27 0.022 255;
+    /* Primary: #1A4D2E Deep Forest Green */
+    --primary: 0.355 0.095 152;
+    --primary-foreground: 1 0 0;
+    /* Secondary: #F5F5F0 Bone White */
+    --secondary: 0.97 0.004 102;
+    --secondary-foreground: 0.355 0.095 152;
+    /* Muted: #F3F4F6 */
+    --muted: 0.965 0.004 240;
+    --muted-foreground: 0.555 0.015 250;
+    /* Accent: #D97706 Amber/Gold */
+    --accent: 0.675 0.165 65;
+    --accent-foreground: 1 0 0;
+    /* Destructive */
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+    /* Border: #E5E7EB */
+    --border: 0.918 0.008 250;
+    --input: 0.918 0.008 250;
+    /* Ring: primary green */
+    --ring: 0.355 0.095 152;
+    /* Charts */
+    --chart-1: 0.646 0.222 41.116;
+    --chart-2: 0.6 0.118 184.704;
+    --chart-3: 0.398 0.07 227.392;
+    --chart-4: 0.828 0.189 84.429;
+    --chart-5: 0.769 0.188 70.08;
+    /* Sidebar */
+    --sidebar: 0.97 0.004 102;
+    --sidebar-foreground: 0.27 0.022 255;
+    --sidebar-primary: 0.355 0.095 152;
+    --sidebar-primary-foreground: 1 0 0;
+    --sidebar-accent: 0.918 0.008 250;
+    --sidebar-accent-foreground: 0.27 0.022 255;
+    --sidebar-border: 0.918 0.008 250;
+    --sidebar-ring: 0.355 0.095 152;
+  }
+
+  .dark {
+    --background: 0.145 0 0;
+    --foreground: 0.985 0 0;
+    --card: 0.205 0 0;
+    --card-foreground: 0.985 0 0;
+    --popover: 0.269 0 0;
+    --popover-foreground: 0.985 0 0;
+    --primary: 0.355 0.095 152;
+    --primary-foreground: 1 0 0;
+    --secondary: 0.269 0 0;
+    --secondary-foreground: 0.985 0 0;
+    --muted: 0.269 0 0;
+    --muted-foreground: 0.708 0 0;
+    --accent: 0.675 0.165 65;
+    --accent-foreground: 1 0 0;
+    --destructive: 0.704 0.191 22.216;
+    --destructive-foreground: 0.205 0 0;
+    --border: 1 0 0 / 10%;
+    --input: 1 0 0 / 15%;
+    --ring: 0.355 0.095 152;
+    --chart-1: 0.488 0.243 264.376;
+    --chart-2: 0.696 0.17 162.48;
+    --chart-3: 0.769 0.188 70.08;
+    --chart-4: 0.627 0.265 303.9;
+    --chart-5: 0.645 0.246 16.439;
+    --sidebar: 0.205 0 0;
+    --sidebar-foreground: 0.985 0 0;
+    --sidebar-primary: 0.355 0.095 152;
+    --sidebar-primary-foreground: 0.985 0 0;
+    --sidebar-accent: 0.269 0 0;
+    --sidebar-accent-foreground: 0.985 0 0;
+    --sidebar-border: 1 0 0 / 10%;
+    --sidebar-ring: 0.355 0.095 152;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Manrope", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Playfair Display", Georgia, serif;
+  }
+}
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(var(--border));
+  border-radius: 3px;
+}

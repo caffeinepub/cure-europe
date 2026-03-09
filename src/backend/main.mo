@@ -1,14 +1,18 @@
 import Map "mo:core/Map";
 import Iter "mo:core/Iter";
+import List "mo:core/List";
 import Text "mo:core/Text";
 import Order "mo:core/Order";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   type Lead = {
     name : Text;
     email : Text;
   };
 
+  // Internal product type with mutable list
   type Product = {
     id : Text;
     name : Text;
@@ -17,6 +21,19 @@ actor {
     badge : Text;
     category : Text;
     imageUrl : Text;
+    imageUrls : List.List<Text>;
+  };
+
+  // Public-facing product type with immutable array
+  type ProductView = {
+    id : Text;
+    name : Text;
+    tagline : Text;
+    price : Text;
+    badge : Text;
+    category : Text;
+    imageUrl : Text;
+    imageUrls : [Text];
   };
 
   module Lead {
@@ -25,14 +42,21 @@ actor {
     };
   };
 
-  module Product {
-    public func compare(p1 : Product, p2 : Product) : Order.Order {
+  module ProductView {
+    public func compare(p1 : ProductView, p2 : ProductView) : Order.Order {
       Text.compare(p1.id, p2.id);
     };
   };
 
   let leads = Map.empty<Text, Lead>();
   let products = Map.empty<Text, Product>();
+
+  func toProductView(product : Product) : ProductView {
+    {
+      product with
+      imageUrls = product.imageUrls.toArray();
+    };
+  };
 
   public shared ({ caller }) func addLead(name : Text, email : Text) : async () {
     let lead : Lead = { name; email };
@@ -50,7 +74,17 @@ actor {
     leads.values().toArray().sort();
   };
 
-  public shared ({ caller }) func addProduct(id : Text, name : Text, tagline : Text, price : Text, badge : Text, category : Text, imageUrl : Text) : async () {
+  public shared ({ caller }) func addProduct(
+    id : Text,
+    name : Text,
+    tagline : Text,
+    price : Text,
+    badge : Text,
+    category : Text,
+    imageUrl : Text,
+    imageUrlsArray : [Text],
+  ) : async () {
+    let imageUrls = List.fromArray(imageUrlsArray);
     let product : Product = {
       id;
       name;
@@ -59,14 +93,25 @@ actor {
       badge;
       category;
       imageUrl;
+      imageUrls;
     };
     products.add(id, product);
   };
 
-  public shared ({ caller }) func updateProduct(id : Text, name : Text, tagline : Text, price : Text, badge : Text, category : Text, imageUrl : Text) : async Bool {
+  public shared ({ caller }) func updateProduct(
+    id : Text,
+    name : Text,
+    tagline : Text,
+    price : Text,
+    badge : Text,
+    category : Text,
+    imageUrl : Text,
+    imageUrlsArray : [Text],
+  ) : async Bool {
     switch (products.get(id)) {
       case (null) { false };
       case (?_) {
+        let imageUrls = List.fromArray(imageUrlsArray);
         let updatedProduct : Product = {
           id;
           name;
@@ -75,6 +120,7 @@ actor {
           badge;
           category;
           imageUrl;
+          imageUrls;
         };
         products.add(id, updatedProduct);
         true;
@@ -88,21 +134,31 @@ actor {
     existed;
   };
 
-  public query ({ caller }) func getProduct(id : Text) : async ?Product {
-    products.get(id);
+  public query ({ caller }) func getProduct(id : Text) : async ?ProductView {
+    switch (products.get(id)) {
+      case (null) { null };
+      case (?product) { ?toProductView(product) };
+    };
   };
 
-  public query ({ caller }) func getAllProducts() : async [Product] {
-    products.values().toArray().sort();
+  public query ({ caller }) func getAllProducts() : async [ProductView] {
+    let productArray = products.values().toArray();
+    let productViewArray = productArray.map(
+      toProductView
+    );
+    productViewArray.sort();
   };
 
-  public shared ({ caller }) func seedProducts(newProducts : [Product]) : async Bool {
+  public shared ({ caller }) func seedProducts(newProducts : [ProductView]) : async Bool {
     if (products.size() > 0) {
       return false;
     };
 
     for (product in newProducts.values()) {
-      products.add(product.id, product);
+      let internalProduct : Product = {
+        product with imageUrls = List.fromArray(product.imageUrls);
+      };
+      products.add(product.id, internalProduct);
     };
     true;
   };

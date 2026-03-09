@@ -11,8 +11,9 @@ import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
 export interface Lead { 'name' : string, 'email' : string }
-export interface Product {
+export interface ProductView {
   'id' : string,
+  'imageUrls' : Array<string>,
   'tagline' : string,
   'name' : string,
   'imageUrl' : string,
@@ -23,18 +24,18 @@ export interface Product {
 export interface _SERVICE {
   'addLead' : ActorMethod<[string, string], undefined>,
   'addProduct' : ActorMethod<
-    [string, string, string, string, string, string, string],
+    [string, string, string, string, string, string, string, Array<string>],
     undefined
   >,
   'adminLogin' : ActorMethod<[string], boolean>,
   'deleteProduct' : ActorMethod<[string], boolean>,
   'getAllLeads' : ActorMethod<[], Array<Lead>>,
-  'getAllProducts' : ActorMethod<[], Array<Product>>,
+  'getAllProducts' : ActorMethod<[], Array<ProductView>>,
   'getLead' : ActorMethod<[string], Lead>,
-  'getProduct' : ActorMethod<[string], [] | [Product]>,
-  'seedProducts' : ActorMethod<[Array<Product>], boolean>,
+  'getProduct' : ActorMethod<[string], [] | [ProductView]>,
+  'seedProducts' : ActorMethod<[Array<ProductView>], boolean>,
   'updateProduct' : ActorMethod<
-    [string, string, string, string, string, string, string],
+    [string, string, string, string, string, string, string, Array<string>],
     boolean
   >,
 }

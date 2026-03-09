@@ -10,6 +10,7 @@ import {
 import {
   Award,
   CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   Loader2,
   Lock,
@@ -33,7 +34,7 @@ import { useForm } from "react-hook-form";
 import { SiInstagram } from "react-icons/si";
 import { toast } from "sonner";
 
-import type { Product } from "@/backend.d";
+import type { ProductView } from "@/backend.d";
 import { useActor } from "@/hooks/useActor";
 
 import {
@@ -98,7 +99,7 @@ const WHATSAPP_URL = "https://wa.me/message/GAVCZG4DDEMMH1";
 const PRODUCT_IMAGE =
   "https://images.unsplash.com/photo-1763667926453-6a992d38ac43?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2MzR8MHwxfHNlYXJjaHwzfHxtaW5pbWFsaXN0JTIwcGlsbCUyMGJvdHRsZSUyMG1lZGljYXRpb24lMjBwYWNrYWdpbmd8ZW58MHx8fHwxNzczMDI1MDA0fDA&ixlib=rb-4.1.0&q=85";
 
-const DEFAULT_PRODUCTS: Product[] = [
+const DEFAULT_PRODUCTS: ProductView[] = [
   {
     id: "1",
     name: "Erectile Dysfunction Treatment",
@@ -106,7 +107,13 @@ const DEFAULT_PRODUCTS: Product[] = [
     price: "from €29",
     badge: "Best Seller",
     category: "Men's Health",
-    imageUrl: PRODUCT_IMAGE,
+    imageUrl:
+      "https://images.unsplash.com/photo-1763667926453-6a992d38ac43?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    imageUrls: [
+      "https://images.unsplash.com/photo-1763667926453-6a992d38ac43?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1631549916768-4119b2e5f926?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    ],
   },
   {
     id: "2",
@@ -115,7 +122,13 @@ const DEFAULT_PRODUCTS: Product[] = [
     price: "from €45",
     badge: "",
     category: "Men's Health",
-    imageUrl: PRODUCT_IMAGE,
+    imageUrl:
+      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    imageUrls: [
+      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1594381898411-846e7d193883?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    ],
   },
   {
     id: "3",
@@ -124,7 +137,13 @@ const DEFAULT_PRODUCTS: Product[] = [
     price: "from €35",
     badge: "",
     category: "Men's Health",
-    imageUrl: PRODUCT_IMAGE,
+    imageUrl:
+      "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    imageUrls: [
+      "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1576091160550-2173dba999ef?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    ],
   },
   {
     id: "4",
@@ -133,7 +152,13 @@ const DEFAULT_PRODUCTS: Product[] = [
     price: "from €39",
     badge: "Best Seller",
     category: "Hair Loss",
-    imageUrl: PRODUCT_IMAGE,
+    imageUrl:
+      "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    imageUrls: [
+      "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1560707303-4e980ce876ad?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    ],
   },
   {
     id: "5",
@@ -142,7 +167,13 @@ const DEFAULT_PRODUCTS: Product[] = [
     price: "from €25",
     badge: "",
     category: "Hair Loss",
-    imageUrl: PRODUCT_IMAGE,
+    imageUrl:
+      "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    imageUrls: [
+      "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1504439468489-c8920d796a29?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    ],
   },
   {
     id: "6",
@@ -151,7 +182,13 @@ const DEFAULT_PRODUCTS: Product[] = [
     price: "from €59",
     badge: "",
     category: "Hair Loss",
-    imageUrl: PRODUCT_IMAGE,
+    imageUrl:
+      "https://images.unsplash.com/photo-1526045612212-70caf35c14df?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    imageUrls: [
+      "https://images.unsplash.com/photo-1526045612212-70caf35c14df?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    ],
   },
   {
     id: "7",
@@ -160,7 +197,13 @@ const DEFAULT_PRODUCTS: Product[] = [
     price: "from €49",
     badge: "",
     category: "Weight Management",
-    imageUrl: PRODUCT_IMAGE,
+    imageUrl:
+      "https://images.unsplash.com/photo-1490645935967-10de6ba17061?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    imageUrls: [
+      "https://images.unsplash.com/photo-1490645935967-10de6ba17061?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    ],
   },
   {
     id: "8",
@@ -169,7 +212,13 @@ const DEFAULT_PRODUCTS: Product[] = [
     price: "from €42",
     badge: "",
     category: "Weight Management",
-    imageUrl: PRODUCT_IMAGE,
+    imageUrl:
+      "https://images.unsplash.com/photo-1498837167922-ddd27525d352?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    imageUrls: [
+      "https://images.unsplash.com/photo-1498837167922-ddd27525d352?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1490645935967-10de6ba17061?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1607962837359-5e7e89f86776?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    ],
   },
   {
     id: "9",
@@ -178,7 +227,13 @@ const DEFAULT_PRODUCTS: Product[] = [
     price: "from €29",
     badge: "",
     category: "General Wellness",
-    imageUrl: PRODUCT_IMAGE,
+    imageUrl:
+      "https://images.unsplash.com/photo-1550572017-4fcdbb59cc32?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    imageUrls: [
+      "https://images.unsplash.com/photo-1550572017-4fcdbb59cc32?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1559181567-c3190ca9959b?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    ],
   },
   {
     id: "10",
@@ -187,7 +242,13 @@ const DEFAULT_PRODUCTS: Product[] = [
     price: "from €35",
     badge: "",
     category: "General Wellness",
-    imageUrl: PRODUCT_IMAGE,
+    imageUrl:
+      "https://images.unsplash.com/photo-1515377905703-c4788e51af15?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    imageUrls: [
+      "https://images.unsplash.com/photo-1515377905703-c4788e51af15?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1520206183501-b80df61043c2?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+      "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85&w=800",
+    ],
   },
 ];
 
@@ -206,7 +267,7 @@ interface ProductFormData {
   price: string;
   badge: string;
   category: string;
-  imageUrl: string;
+  imageUrls: string;
 }
 
 // ─── Animation Variants ──────────────────────────────────────────────────────
@@ -232,6 +293,115 @@ const fadeIn: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { duration: 0.5 } },
 };
+
+// ─── Product Image Carousel ───────────────────────────────────────────────────
+
+interface ProductImageCarouselProps {
+  images: string[];
+  name: string;
+  badge?: string;
+  categoryPill?: string;
+  showHoverScale?: boolean;
+}
+
+function ProductImageCarousel({
+  images,
+  name,
+  badge,
+  categoryPill,
+  showHoverScale = false,
+}: ProductImageCarouselProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const urls = images.length > 0 ? images : [PRODUCT_IMAGE];
+  const hasMultiple = urls.length > 1;
+
+  const prev = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentIndex((i) => (i - 1 + urls.length) % urls.length);
+  };
+
+  const next = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentIndex((i) => (i + 1) % urls.length);
+  };
+
+  return (
+    <div className="relative overflow-hidden aspect-video">
+      <img
+        src={urls[currentIndex]}
+        alt={`${name} – view ${currentIndex + 1}`}
+        className={`w-full h-full object-cover transition-all duration-500${showHoverScale ? " group-hover:scale-105" : ""}`}
+        loading="lazy"
+      />
+
+      {/* Badge */}
+      {badge && (
+        <div className="absolute top-3 left-3 z-10">
+          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-accent text-white shadow-sm">
+            {badge}
+          </span>
+        </div>
+      )}
+
+      {/* Category pill */}
+      {categoryPill && (
+        <div className="absolute top-3 right-3 z-10">
+          <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-white/90 backdrop-blur-sm text-foreground/80 shadow-sm">
+            {categoryPill}
+          </span>
+        </div>
+      )}
+
+      {/* Left / Right arrows */}
+      {hasMultiple && (
+        <>
+          <button
+            type="button"
+            onClick={prev}
+            aria-label="Previous image"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-all backdrop-blur-sm"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={next}
+            aria-label="Next image"
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-all backdrop-blur-sm"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </>
+      )}
+
+      {/* Dot indicators */}
+      {hasMultiple && (
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5">
+          {urls.map((url, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: dot indicators are positional, not list items
+            <button
+              key={url}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setCurrentIndex(i);
+              }}
+              aria-label={`Go to image ${i + 1}`}
+              className={`rounded-full transition-all duration-200 ${
+                i === currentIndex
+                  ? "w-2 h-2 bg-white shadow-sm"
+                  : "w-1.5 h-1.5 bg-white/50 hover:bg-white/75"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ─── Announcement Banner ─────────────────────────────────────────────────────
 
@@ -773,7 +943,7 @@ function HowItWorks() {
 
 function ProductGrid() {
   const { actor, isFetching } = useActor();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductView[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -854,21 +1024,16 @@ function ProductGrid() {
                 data-ocid={`products.item.${index + 1}`}
               >
                 <Card className="h-full flex flex-col border border-border hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer overflow-hidden rounded-xl">
-                  <div className="relative overflow-hidden aspect-video">
-                    <img
-                      src={product.imageUrl || PRODUCT_IMAGE}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
-                    />
-                    {product.badge && (
-                      <div className="absolute top-3 left-3">
-                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-accent text-white shadow-sm">
-                          {product.badge}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                  <ProductImageCarousel
+                    images={
+                      product.imageUrls?.length > 0
+                        ? product.imageUrls
+                        : [product.imageUrl || PRODUCT_IMAGE]
+                    }
+                    name={product.name}
+                    badge={product.badge || undefined}
+                    showHoverScale
+                  />
                   <CardHeader className="pb-2">
                     <CardTitle
                       className="text-xl text-foreground"
@@ -1804,7 +1969,7 @@ const CATEGORY_OCIDS: Record<ProductCategory, string> = {
 function ProductsPage() {
   const { actor, isFetching } = useActor();
   const [activeCategory, setActiveCategory] = useState<ProductCategory>("All");
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductView[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -1962,28 +2127,18 @@ function ProductsPage() {
                   data-ocid={`products_page.item.${index + 1}`}
                 >
                   <Card className="h-full flex flex-col border border-border hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group overflow-hidden rounded-xl">
-                    {/* Image */}
-                    <div className="relative overflow-hidden aspect-video">
-                      <img
-                        src={product.imageUrl || PRODUCT_IMAGE}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                      />
-                      {product.badge && (
-                        <div className="absolute top-3 left-3">
-                          <Badge className="bg-accent text-white border-0 shadow-sm text-xs font-semibold rounded-full px-2.5">
-                            {product.badge}
-                          </Badge>
-                        </div>
-                      )}
-                      {/* Category pill */}
-                      <div className="absolute top-3 right-3">
-                        <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-white/90 backdrop-blur-sm text-foreground/80 shadow-sm">
-                          {product.category}
-                        </span>
-                      </div>
-                    </div>
+                    {/* Image Carousel */}
+                    <ProductImageCarousel
+                      images={
+                        product.imageUrls?.length > 0
+                          ? product.imageUrls
+                          : [product.imageUrl || PRODUCT_IMAGE]
+                      }
+                      name={product.name}
+                      badge={product.badge || undefined}
+                      categoryPill={product.category}
+                      showHoverScale
+                    />
 
                     <CardHeader className="pb-2">
                       <CardTitle
@@ -2078,7 +2233,7 @@ const ADMIN_CATEGORIES: ProductCategory[] = [
 interface ProductFormSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  editingProduct: Product | null;
+  editingProduct: ProductView | null;
   onSaved: () => void;
 }
 
@@ -2105,7 +2260,7 @@ function ProductFormSheet({
       price: "",
       badge: "",
       category: "",
-      imageUrl: "",
+      imageUrls: "",
     },
   });
 
@@ -2117,7 +2272,11 @@ function ProductFormSheet({
       setValue("price", editingProduct.price);
       setValue("badge", editingProduct.badge);
       setValue("category", editingProduct.category);
-      setValue("imageUrl", editingProduct.imageUrl);
+      const urlsText =
+        editingProduct.imageUrls?.length > 0
+          ? editingProduct.imageUrls.join("\n")
+          : editingProduct.imageUrl;
+      setValue("imageUrls", urlsText);
       setCategoryValue(editingProduct.category);
     } else {
       reset();
@@ -2133,6 +2292,12 @@ function ProductFormSheet({
     }
     setIsSaving(true);
     try {
+      const imageUrlsArray = data.imageUrls
+        .split("\n")
+        .map((u) => u.trim())
+        .filter(Boolean);
+      const primaryImageUrl = imageUrlsArray[0] ?? "";
+
       if (editingProduct) {
         await actor.updateProduct(
           editingProduct.id,
@@ -2141,7 +2306,8 @@ function ProductFormSheet({
           data.price,
           data.badge,
           categoryValue,
-          data.imageUrl,
+          primaryImageUrl,
+          imageUrlsArray,
         );
       } else {
         const newId = String(Date.now());
@@ -2152,7 +2318,8 @@ function ProductFormSheet({
           data.price,
           data.badge,
           categoryValue,
-          data.imageUrl,
+          primaryImageUrl,
+          imageUrlsArray,
         );
       }
       toast.success("Product saved");
@@ -2264,14 +2431,20 @@ function ProductFormSheet({
             </Select>
           </div>
 
-          {/* Image URL */}
+          {/* Image URLs */}
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="admin-image">Image URL</Label>
-            <Input
+            <Label htmlFor="admin-image">
+              Image URLs (one per line, up to 5)
+            </Label>
+            <Textarea
               id="admin-image"
-              placeholder="https://..."
+              placeholder={
+                "https://example.com/image1.jpg\nhttps://example.com/image2.jpg\nhttps://example.com/image3.jpg"
+              }
+              rows={4}
+              className="resize-none"
               data-ocid="admin.form.image_input"
-              {...register("imageUrl")}
+              {...register("imageUrls")}
             />
           </div>
 
@@ -2314,11 +2487,13 @@ interface AdminDashboardProps {
 
 function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const { actor, isFetching } = useActor();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductView[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<ProductView | null>(
+    null,
+  );
+  const [deleteTarget, setDeleteTarget] = useState<ProductView | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchProducts = useCallback(async () => {
@@ -2346,7 +2521,7 @@ function AdminDashboard({ onLogout }: AdminDashboardProps) {
     fetchProducts();
   }, [actor, isFetching, fetchProducts]);
 
-  const handleEditClick = (product: Product) => {
+  const handleEditClick = (product: ProductView) => {
     setEditingProduct(product);
     setFormOpen(true);
   };

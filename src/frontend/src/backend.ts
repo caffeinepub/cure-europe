@@ -89,12 +89,9 @@ export class ExternalBlob {
         return this;
     }
 }
-export interface Lead {
-    name: string;
-    email: string;
-}
-export interface Product {
+export interface ProductView {
     id: string;
+    imageUrls: Array<string>;
     tagline: string;
     name: string;
     imageUrl: string;
@@ -102,19 +99,23 @@ export interface Product {
     badge: string;
     price: string;
 }
+export interface Lead {
+    name: string;
+    email: string;
+}
 export interface backendInterface {
     addLead(name: string, email: string): Promise<void>;
-    addProduct(id: string, name: string, tagline: string, price: string, badge: string, category: string, imageUrl: string): Promise<void>;
+    addProduct(id: string, name: string, tagline: string, price: string, badge: string, category: string, imageUrl: string, imageUrlsArray: Array<string>): Promise<void>;
     adminLogin(password: string): Promise<boolean>;
     deleteProduct(id: string): Promise<boolean>;
     getAllLeads(): Promise<Array<Lead>>;
-    getAllProducts(): Promise<Array<Product>>;
+    getAllProducts(): Promise<Array<ProductView>>;
     getLead(email: string): Promise<Lead>;
-    getProduct(id: string): Promise<Product | null>;
-    seedProducts(newProducts: Array<Product>): Promise<boolean>;
-    updateProduct(id: string, name: string, tagline: string, price: string, badge: string, category: string, imageUrl: string): Promise<boolean>;
+    getProduct(id: string): Promise<ProductView | null>;
+    seedProducts(newProducts: Array<ProductView>): Promise<boolean>;
+    updateProduct(id: string, name: string, tagline: string, price: string, badge: string, category: string, imageUrl: string, imageUrlsArray: Array<string>): Promise<boolean>;
 }
-import type { Product as _Product } from "./declarations/backend.did.d.ts";
+import type { ProductView as _ProductView } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async addLead(arg0: string, arg1: string): Promise<void> {
@@ -131,17 +132,17 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async addProduct(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string): Promise<void> {
+    async addProduct(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: Array<string>): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.addProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+                const result = await this.actor.addProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+            const result = await this.actor.addProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
             return result;
         }
     }
@@ -187,7 +188,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async getAllProducts(): Promise<Array<Product>> {
+    async getAllProducts(): Promise<Array<ProductView>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getAllProducts();
@@ -215,7 +216,7 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async getProduct(arg0: string): Promise<Product | null> {
+    async getProduct(arg0: string): Promise<ProductView | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getProduct(arg0);
@@ -229,7 +230,7 @@ export class Backend implements backendInterface {
             return from_candid_opt_n1(this._uploadFile, this._downloadFile, result);
         }
     }
-    async seedProducts(arg0: Array<Product>): Promise<boolean> {
+    async seedProducts(arg0: Array<ProductView>): Promise<boolean> {
         if (this.processError) {
             try {
                 const result = await this.actor.seedProducts(arg0);
@@ -243,22 +244,22 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async updateProduct(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string): Promise<boolean> {
+    async updateProduct(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: Array<string>): Promise<boolean> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+                const result = await this.actor.updateProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+            const result = await this.actor.updateProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
             return result;
         }
     }
 }
-function from_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Product]): Product | null {
+function from_candid_opt_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_ProductView]): ProductView | null {
     return value.length === 0 ? null : value[0];
 }
 export interface CreateActorOptions {

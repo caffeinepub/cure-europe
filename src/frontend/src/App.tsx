@@ -1,4 +1,13 @@
 import {
+  Link,
+  Outlet,
+  RouterProvider,
+  createRootRoute,
+  createRoute,
+  createRouter,
+  useRouterState,
+} from "@tanstack/react-router";
+import {
   Award,
   CheckCircle2,
   ChevronRight,
@@ -9,6 +18,7 @@ import {
   MessageCircle,
   Send,
   Shield,
+  ShoppingBag,
   Star,
   X,
   Youtube,
@@ -20,12 +30,15 @@ import { useForm } from "react-hook-form";
 import { SiInstagram } from "react-icons/si";
 import { toast } from "sonner";
 
+import { useActor } from "@/hooks/useActor";
+
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -56,7 +69,9 @@ import { Textarea } from "@/components/ui/textarea";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL as string) ?? "";
+const WHATSAPP_URL = "https://wa.me/message/GAVCZG4DDEMMH1";
+const PRODUCT_IMAGE =
+  "https://images.unsplash.com/photo-1763667926453-6a992d38ac43?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2MzR8MHwxfHNlYXJjaHwzfHxtaW5pbWFsaXN0JTIwcGlsbCUyMGJvdHRsZSUyMG1lZGljYXRpb24lMjBwYWNrYWdpbmd8ZW58MHx8fHwxNzczMDI1MDA0fDA&ixlib=rb-4.1.0&q=85";
 
 // ─── Form Types ───────────────────────────────────────────────────────────────
 
@@ -91,53 +106,117 @@ const fadeIn: Variants = {
   visible: { opacity: 1, transition: { duration: 0.5 } },
 };
 
+// ─── Announcement Banner ─────────────────────────────────────────────────────
+
+function AnnouncementBanner() {
+  const message =
+    "Shop for 90€ get 20% OFF, Limited offer! 📣      Free shipping with BTC payment 🚚";
+
+  return (
+    <div
+      className="w-full overflow-hidden"
+      style={{ backgroundColor: "#1A4D2E", height: "36px" }}
+      aria-label="Announcement"
+      role="marquee"
+    >
+      <div className="flex h-full items-center animate-marquee whitespace-nowrap">
+        {/* Six copies so the loop is seamless regardless of viewport width */}
+        <span className="text-sm font-medium text-white px-12">{message}</span>
+        <span
+          className="text-sm font-medium text-white px-12"
+          aria-hidden="true"
+        >
+          {message}
+        </span>
+        <span
+          className="text-sm font-medium text-white px-12"
+          aria-hidden="true"
+        >
+          {message}
+        </span>
+        <span
+          className="text-sm font-medium text-white px-12"
+          aria-hidden="true"
+        >
+          {message}
+        </span>
+        <span
+          className="text-sm font-medium text-white px-12"
+          aria-hidden="true"
+        >
+          {message}
+        </span>
+        <span
+          className="text-sm font-medium text-white px-12"
+          aria-hidden="true"
+        >
+          {message}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // ─── Navigation Component ────────────────────────────────────────────────────
 
 function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const routerState = useRouterState();
+  const isOnHome = routerState.location.pathname === "/";
+
+  const getHref = (anchor: string) => (isOnHome ? anchor : `/${anchor}`);
 
   const navLinks = [
-    { label: "Home", href: "#home" },
-    { label: "Products", href: "#products" },
-    { label: "How It Works", href: "#how-it-works" },
-    { label: "About", href: "#about" },
-    { label: "FAQ", href: "#faq" },
-    { label: "Contact", href: "#contact" },
+    { label: "Home", href: getHref("#home") },
+    { label: "Products", href: "/products", isRoute: true },
+    { label: "How It Works", href: getHref("#how-it-works") },
+    { label: "About", href: getHref("#about") },
+    { label: "FAQ", href: getHref("#faq") },
+    { label: "Contact", href: getHref("#contact") },
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border backdrop-blur-md bg-white/80">
+    <header className="sticky top-0 z-40 border-b border-border backdrop-blur-md bg-white/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
-          <a
-            href="#home"
-            className="flex items-center gap-2"
-            data-ocid="nav.link"
-          >
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-white text-xs font-bold">CE</span>
-            </div>
+          <Link to="/" className="flex items-center gap-3" data-ocid="nav.link">
+            <img
+              src="/assets/uploads/IMG_4459-1.jpeg"
+              alt="Cure Pharmaceuticals"
+              className="h-12 w-auto object-contain"
+            />
             <span
-              className="text-xl font-semibold text-primary"
+              className="text-base font-semibold text-foreground leading-tight"
               style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
             >
-              Cure Europe
+              Cure Pharmacy Europe
             </span>
-          </a>
+          </Link>
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
-                data-ocid="nav.link"
-              >
-                {link.label}
-              </a>
-            ))}
+            {navLinks.map((link) =>
+              link.isRoute ? (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
+                  data-ocid="nav.link"
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
+                  data-ocid="nav.link"
+                >
+                  {link.label}
+                </a>
+              ),
+            )}
           </nav>
 
           {/* Desktop CTA */}
@@ -147,7 +226,7 @@ function Navigation() {
               className="rounded-full px-6 bg-primary text-white hover:bg-primary/90 shadow-sm"
               data-ocid="nav.primary_button"
             >
-              <a href="#consultation">Get Started</a>
+              <a href={getHref("#consultation")}>Get Started</a>
             </Button>
           </div>
 
@@ -166,26 +245,40 @@ function Navigation() {
             </SheetTrigger>
             <SheetContent side="right" className="w-72">
               <SheetHeader>
-                <SheetTitle
-                  className="text-primary text-lg"
-                  style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-                >
-                  Cure Europe
+                <SheetTitle className="flex items-center">
+                  <img
+                    src="/assets/uploads/IMG_4459-1.jpeg"
+                    alt="Cure Pharmaceuticals"
+                    className="h-10 w-auto object-contain"
+                  />
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-1 mt-6 px-4">
-                {navLinks.map((link) => (
-                  <a
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 py-3 text-sm font-medium text-foreground hover:text-primary transition-colors border-b border-border last:border-0"
-                    data-ocid="nav.link"
-                  >
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                    {link.label}
-                  </a>
-                ))}
+                {navLinks.map((link) =>
+                  link.isRoute ? (
+                    <Link
+                      key={link.href}
+                      to={link.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-2 py-3 text-sm font-medium text-foreground hover:text-primary transition-colors border-b border-border last:border-0"
+                      data-ocid="nav.link"
+                    >
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="flex items-center gap-2 py-3 text-sm font-medium text-foreground hover:text-primary transition-colors border-b border-border last:border-0"
+                      data-ocid="nav.link"
+                    >
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      {link.label}
+                    </a>
+                  ),
+                )}
                 <Button
                   className="mt-6 rounded-full bg-primary text-white hover:bg-primary/90"
                   data-ocid="nav.primary_button"
@@ -264,7 +357,7 @@ function HeroSection() {
                 className="rounded-full px-8 py-6 text-base border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/50 transition-all"
                 data-ocid="hero.secondary_button"
               >
-                <a href="#products">View Treatments</a>
+                <Link to="/products">View Treatments</Link>
               </Button>
             </motion.div>
 
@@ -551,9 +644,9 @@ function HowItWorks() {
   );
 }
 
-// ─── Product Bento Grid ───────────────────────────────────────────────────────
+// ─── Product Bento Grid (Home) ───────────────────────────────────────────────
 
-interface Product {
+interface HomeProduct {
   id: number;
   name: string;
   tagline: string;
@@ -562,7 +655,7 @@ interface Product {
 }
 
 function ProductGrid() {
-  const products: Product[] = [
+  const products: HomeProduct[] = [
     {
       id: 1,
       name: "Erectile Dysfunction",
@@ -585,9 +678,6 @@ function ProductGrid() {
       badge: null,
     },
   ];
-
-  const productImage =
-    "https://images.unsplash.com/photo-1763667926453-6a992d38ac43?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2MzR8MHwxfHNlYXJjaHwzfHxtaW5pbWFsaXN0JTIwcGlsbCUyMGJvdHRsZSUyMG1lZGljYXRpb24lMjBwYWNrYWdpbmd8ZW58MHx8fHwxNzczMDI1MDA0fDA&ixlib=rb-4.1.0&q=85";
 
   return (
     <section id="products" className="py-20 md:py-32 bg-background">
@@ -630,7 +720,7 @@ function ProductGrid() {
               <Card className="h-full flex flex-col border border-border hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer overflow-hidden rounded-xl">
                 <div className="relative overflow-hidden aspect-video">
                   <img
-                    src={productImage}
+                    src={PRODUCT_IMAGE}
                     alt={product.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
@@ -659,18 +749,46 @@ function ProductGrid() {
                     {product.price}
                   </p>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="flex flex-col gap-2">
                   <Button
-                    variant="outline"
-                    className="w-full rounded-full border-primary/40 text-primary hover:bg-primary hover:text-white transition-all"
-                    data-ocid={`products.button.${index + 1}`}
+                    asChild
+                    className="w-full rounded-full bg-primary text-white hover:bg-primary/90 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
+                    data-ocid={`products.buy_now_button.${index + 1}`}
                   >
-                    Learn More
+                    <a
+                      href={WHATSAPP_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <MessageCircle className="mr-2 h-4 w-4" />
+                      Buy Now
+                    </a>
                   </Button>
                 </CardFooter>
               </Card>
             </motion.div>
           ))}
+        </motion.div>
+
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="text-center mt-12"
+        >
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            className="rounded-full px-8 border-primary/40 text-primary hover:bg-primary hover:text-white transition-all"
+            data-ocid="products.secondary_button"
+          >
+            <Link to="/products">
+              <ShoppingBag className="mr-2 h-4 w-4" />
+              View All Products
+            </Link>
+          </Button>
         </motion.div>
       </div>
     </section>
@@ -794,6 +912,7 @@ function MedicalExperts() {
 function LeadCaptureForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [treatmentValue, setTreatmentValue] = useState("");
+  const { actor } = useActor();
 
   const {
     register,
@@ -808,6 +927,13 @@ function LeadCaptureForm() {
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
     "Please enter a valid email address";
 
+  const TREATMENT_LABELS: Record<string, string> = {
+    ed: "Erectile Dysfunction",
+    hair: "Hair Loss",
+    weight: "Weight Management",
+    other: "Other",
+  };
+
   const onSubmit = async (data: FormData) => {
     if (!treatmentValue) {
       toast.error("Please select a treatment interest.");
@@ -815,12 +941,26 @@ function LeadCaptureForm() {
     }
     setIsSubmitting(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/status`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ client_name: data.fullName }),
-      });
-      if (!res.ok) throw new Error("Request failed");
+      // Save lead to backend (non-blocking — don't let backend errors stop the form)
+      if (actor) {
+        actor.addLead(data.fullName, data.email).catch(() => {
+          // silently ignore backend errors; the mailto is the primary delivery
+        });
+      }
+
+      // Open email client without navigating away from the page
+      const treatmentLabel = TREATMENT_LABELS[treatmentValue] ?? treatmentValue;
+      const subject = encodeURIComponent(
+        `New Consultation Request – ${data.fullName}`,
+      );
+      const body = encodeURIComponent(
+        `You have received a new consultation request from your website.\n\nFull Name: ${data.fullName}\nEmail: ${data.email}\nTreatment Interest: ${treatmentLabel}\nMessage: ${data.message || "(none provided)"}\n\nPlease follow up with this customer at your earliest convenience.`,
+      );
+      window.open(
+        `mailto:curepharmaa@outlook.com?subject=${subject}&body=${body}`,
+        "_blank",
+      );
+
       toast.success("Your consultation request has been received.", {
         description:
           "A licensed physician will review your case within 24 hours.",
@@ -1238,15 +1378,11 @@ function Footer() {
           {/* Brand */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                <span className="text-white text-xs font-bold">CE</span>
-              </div>
-              <span
-                className="text-lg font-semibold text-white"
-                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-              >
-                Cure Europe
-              </span>
+              <img
+                src="/assets/uploads/IMG_4459-1.jpeg"
+                alt="Cure Pharmaceuticals"
+                className="h-12 w-auto object-contain rounded-md"
+              />
             </div>
             <p className="text-sm leading-relaxed text-white/50">
               European Medical Wellness, Delivered.
@@ -1355,25 +1491,375 @@ function Footer() {
   );
 }
 
-// ─── App ──────────────────────────────────────────────────────────────────────
+// ─── Products Page ────────────────────────────────────────────────────────────
 
-export default function App() {
+type ProductCategory =
+  | "All"
+  | "Men's Health"
+  | "Hair Loss"
+  | "Weight Management"
+  | "General Wellness";
+
+interface CatalogProduct {
+  id: number;
+  name: string;
+  tagline: string;
+  price: string;
+  badge: string | null;
+  category: Exclude<ProductCategory, "All">;
+}
+
+const CATALOG_PRODUCTS: CatalogProduct[] = [
+  {
+    id: 1,
+    name: "Erectile Dysfunction Treatment",
+    tagline: "Clinically proven. Discreetly delivered.",
+    price: "from €29/mo",
+    badge: "Best Seller",
+    category: "Men's Health",
+  },
+  {
+    id: 2,
+    name: "Testosterone Boost",
+    tagline: "Restore energy, drive and confidence.",
+    price: "from €45/mo",
+    badge: null,
+    category: "Men's Health",
+  },
+  {
+    id: 3,
+    name: "Premature Ejaculation",
+    tagline: "Science-backed solutions for lasting intimacy.",
+    price: "from €35/mo",
+    badge: null,
+    category: "Men's Health",
+  },
+  {
+    id: 4,
+    name: "Finasteride Treatment",
+    tagline: "Stop hair loss with clinically proven finasteride.",
+    price: "from €39/mo",
+    badge: "Best Seller",
+    category: "Hair Loss",
+  },
+  {
+    id: 5,
+    name: "Minoxidil Solution",
+    tagline: "Stimulate regrowth with topical minoxidil.",
+    price: "from €25/mo",
+    badge: null,
+    category: "Hair Loss",
+  },
+  {
+    id: 6,
+    name: "Hair Restoration Kit",
+    tagline: "Complete 3-step hair restoration programme.",
+    price: "from €59/mo",
+    badge: null,
+    category: "Hair Loss",
+  },
+  {
+    id: 7,
+    name: "Medically Supervised Weight Loss",
+    tagline: "Doctor-guided, sustainable weight loss.",
+    price: "from €49/mo",
+    badge: null,
+    category: "Weight Management",
+  },
+  {
+    id: 8,
+    name: "Appetite Control",
+    tagline: "Clinically approved appetite suppressants.",
+    price: "from €42/mo",
+    badge: null,
+    category: "Weight Management",
+  },
+  {
+    id: 9,
+    name: "Vitamin & Supplement Pack",
+    tagline: "Personalised European wellness supplements.",
+    price: "from €29/mo",
+    badge: null,
+    category: "General Wellness",
+  },
+  {
+    id: 10,
+    name: "Stress & Sleep Support",
+    tagline: "Medical-grade sleep and stress relief.",
+    price: "from €35/mo",
+    badge: null,
+    category: "General Wellness",
+  },
+];
+
+const CATEGORY_TABS: ProductCategory[] = [
+  "All",
+  "Men's Health",
+  "Hair Loss",
+  "Weight Management",
+  "General Wellness",
+];
+
+const CATEGORY_OCIDS: Record<ProductCategory, string> = {
+  All: "products_page.all_tab",
+  "Men's Health": "products_page.mens_health_tab",
+  "Hair Loss": "products_page.hair_loss_tab",
+  "Weight Management": "products_page.weight_management_tab",
+  "General Wellness": "products_page.wellness_tab",
+};
+
+function ProductsPage() {
+  const [activeCategory, setActiveCategory] = useState<ProductCategory>("All");
+
+  const filtered =
+    activeCategory === "All"
+      ? CATALOG_PRODUCTS
+      : CATALOG_PRODUCTS.filter((p) => p.category === activeCategory);
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Page Hero */}
+      <section className="py-16 md:py-24 bg-secondary">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Breadcrumb */}
+          <motion.nav
+            variants={fadeUp}
+            initial="hidden"
+            animate="visible"
+            className="flex items-center gap-2 text-sm text-muted-foreground mb-8"
+            aria-label="Breadcrumb"
+          >
+            <Link
+              to="/"
+              className="hover:text-primary transition-colors"
+              data-ocid="products_page.link"
+            >
+              Home
+            </Link>
+            <ChevronRight className="h-3.5 w-3.5" />
+            <span className="text-foreground font-medium">Products</span>
+          </motion.nav>
+
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+            className="max-w-2xl"
+          >
+            <motion.span
+              variants={fadeUp}
+              className="text-xs uppercase tracking-widest font-semibold text-accent"
+            >
+              Our Catalogue
+            </motion.span>
+            <motion.h1
+              variants={fadeUp}
+              className="text-5xl md:text-6xl font-semibold tracking-tight leading-tight text-foreground mt-3"
+              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+            >
+              Our Products
+            </motion.h1>
+            <motion.p
+              variants={fadeUp}
+              className="text-base md:text-lg leading-relaxed text-muted-foreground mt-4"
+            >
+              Clinically proven treatments, discreetly delivered.
+            </motion.p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Category Filter */}
+      <div className="sticky top-[100px] md:top-[116px] z-30 bg-background/95 backdrop-blur-sm border-b border-border py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {CATEGORY_TABS.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setActiveCategory(cat)}
+                data-ocid={CATEGORY_OCIDS[cat]}
+                className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                  activeCategory === cat
+                    ? "bg-primary text-white shadow-sm"
+                    : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Product Grid */}
+      <section className="py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {filtered.length === 0 ? (
+            <div
+              data-ocid="products_page.empty_state"
+              className="flex flex-col items-center justify-center py-24 text-center"
+            >
+              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                <ShoppingBag className="h-7 w-7 text-muted-foreground" />
+              </div>
+              <h3
+                className="text-xl font-medium text-foreground mb-2"
+                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+              >
+                No products in this category yet.
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Check back soon or browse another category.
+              </p>
+            </div>
+          ) : (
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+              key={activeCategory}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {filtered.map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  variants={fadeUp}
+                  data-ocid={`products_page.item.${index + 1}`}
+                >
+                  <Card className="h-full flex flex-col border border-border hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group overflow-hidden rounded-xl">
+                    {/* Image */}
+                    <div className="relative overflow-hidden aspect-video">
+                      <img
+                        src={PRODUCT_IMAGE}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                      {product.badge && (
+                        <div className="absolute top-3 left-3">
+                          <Badge className="bg-accent text-white border-0 shadow-sm text-xs font-semibold rounded-full px-2.5">
+                            {product.badge}
+                          </Badge>
+                        </div>
+                      )}
+                      {/* Category pill */}
+                      <div className="absolute top-3 right-3">
+                        <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-white/90 backdrop-blur-sm text-foreground/80 shadow-sm">
+                          {product.category}
+                        </span>
+                      </div>
+                    </div>
+
+                    <CardHeader className="pb-2">
+                      <CardTitle
+                        className="text-xl text-foreground leading-snug"
+                        style={{
+                          fontFamily: "'Playfair Display', Georgia, serif",
+                        }}
+                      >
+                        {product.name}
+                      </CardTitle>
+                      <CardDescription className="text-sm text-muted-foreground">
+                        {product.tagline}
+                      </CardDescription>
+                    </CardHeader>
+
+                    <CardContent className="flex-1">
+                      <p className="text-lg font-semibold text-primary">
+                        {product.price}
+                      </p>
+                    </CardContent>
+
+                    <CardFooter>
+                      <Button
+                        asChild
+                        className="w-full rounded-full bg-primary text-white hover:bg-primary/90 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
+                        data-ocid={`products_page.buy_now_button.${index + 1}`}
+                      >
+                        <a
+                          href={WHATSAPP_URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <MessageCircle className="mr-2 h-4 w-4" />
+                          Buy Now
+                        </a>
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// ─── Home Page ────────────────────────────────────────────────────────────────
+
+function HomePage() {
+  return (
+    <main>
+      <HeroSection />
+      <TrustBar />
+      <ProblemSolution />
+      <HowItWorks />
+      <ProductGrid />
+      <MedicalExperts />
+      <LeadCaptureForm />
+      <FAQSection />
+      <ContactSection />
+    </main>
+  );
+}
+
+// ─── Layout ───────────────────────────────────────────────────────────────────
+
+function RootLayout() {
   return (
     <div className="min-h-screen bg-background">
       <Toaster richColors position="top-center" />
+      <AnnouncementBanner />
       <Navigation />
-      <main>
-        <HeroSection />
-        <TrustBar />
-        <ProblemSolution />
-        <HowItWorks />
-        <ProductGrid />
-        <MedicalExperts />
-        <LeadCaptureForm />
-        <FAQSection />
-        <ContactSection />
-      </main>
+      <Outlet />
       <Footer />
     </div>
   );
+}
+
+// ─── Router Setup ─────────────────────────────────────────────────────────────
+
+const rootRoute = createRootRoute({
+  component: RootLayout,
+});
+
+const homeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/",
+  component: HomePage,
+});
+
+const productsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/products",
+  component: ProductsPage,
+});
+
+const routeTree = rootRoute.addChildren([homeRoute, productsRoute]);
+
+const router = createRouter({ routeTree });
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router;
+  }
+}
+
+// ─── App ──────────────────────────────────────────────────────────────────────
+
+export default function App() {
+  return <RouterProvider router={router} />;
 }

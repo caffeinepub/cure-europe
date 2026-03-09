@@ -136,3 +136,22 @@ html {
   background: oklch(var(--border));
   border-radius: 3px;
 }
+
+/* ─── TouchDown Gallery Scroll Animation ─────────────────────────── */
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.touchdown-scroll {
+  animation: scroll-left 30s linear infinite;
+  will-change: transform;
+}
+
+.touchdown-scroll:hover {
+  animation-play-state: paused;
+}

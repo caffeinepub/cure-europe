@@ -380,7 +380,6 @@ function ProductImageCarousel({
       {hasMultiple && (
         <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5">
           {urls.map((url, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: dot indicators are positional, not list items
             <button
               key={url}
               type="button"
@@ -1604,6 +1603,136 @@ function LeadCaptureForm() {
   );
 }
 
+// ─── TouchDown Gallery Section ─────────────────────────────────────────────
+
+function TouchDownSection() {
+  const [images, setImages] = useState<string[]>([]);
+  const [title, setTitle] = useState("Our Touchdowns");
+
+  useEffect(() => {
+    const loadFromStorage = () => {
+      try {
+        const stored = localStorage.getItem("touchdown_images");
+        const storedTitle = localStorage.getItem("touchdown_title");
+        if (stored) setImages(JSON.parse(stored));
+        if (storedTitle) setTitle(storedTitle);
+      } catch {
+        // ignore
+      }
+    };
+    loadFromStorage();
+    window.addEventListener("touchdownImagesUpdated", loadFromStorage);
+    return () =>
+      window.removeEventListener("touchdownImagesUpdated", loadFromStorage);
+  }, []);
+
+  // We duplicate the array so the strip loops seamlessly
+  const displayImages = images.length > 0 ? images : [];
+  const loopImages = [...displayImages, ...displayImages];
+
+  return (
+    <section
+      id="touchdown"
+      className="py-20 md:py-28 bg-secondary overflow-hidden"
+      data-ocid="touchdown.section"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-10">
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="text-center"
+        >
+          <span className="text-xs uppercase tracking-widest font-semibold text-accent">
+            Gallery
+          </span>
+          <h2
+            className="text-4xl md:text-5xl font-medium tracking-tight mt-3 text-foreground"
+            style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+          >
+            {title}
+          </h2>
+        </motion.div>
+      </div>
+
+      {/* Scroll strip */}
+      {images.length === 0 ? (
+        /* Placeholder grid when no images configured */
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {(
+              [
+                "p1",
+                "p2",
+                "p3",
+                "p4",
+                "p5",
+                "p6",
+                "p7",
+                "p8",
+                "p9",
+                "p10",
+                "p11",
+                "p12",
+              ] as const
+            ).map((id, i) => (
+              <div
+                key={id}
+                className="h-[220px] rounded-xl bg-muted/60 border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 text-muted-foreground"
+                data-ocid={`touchdown.item.${i + 1}`}
+              >
+                <div className="h-8 w-8 rounded-full bg-border flex items-center justify-center">
+                  <PlusCircle className="h-4 w-4" />
+                </div>
+                <span className="text-xs font-medium">Add Image</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-sm text-muted-foreground mt-6">
+            Add images from the{" "}
+            <a
+              href="/Alexx"
+              className="text-primary underline underline-offset-2 hover:text-primary/80"
+            >
+              Admin Panel
+            </a>{" "}
+            → TouchDown Gallery tab.
+          </p>
+        </div>
+      ) : (
+        /* Auto-scrolling strip */
+        <div className="relative w-full overflow-hidden">
+          <div
+            className="flex gap-4 touchdown-scroll"
+            style={{ width: "max-content" }}
+          >
+            {loopImages.map((src, i) => {
+              return (
+                <div
+                  // biome-ignore lint/suspicious/noArrayIndexKey: intentional duplicate strip for seamless CSS infinite loop
+                  key={`${src}-${i}`}
+                  className="shrink-0 h-[220px] w-auto rounded-xl overflow-hidden border border-border shadow-sm"
+                  data-ocid={
+                    i < images.length ? `touchdown.item.${i + 1}` : undefined
+                  }
+                >
+                  <img
+                    src={src}
+                    alt={`Touchdown ${(i % images.length) + 1}`}
+                    className="h-full w-auto object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 // ─── FAQ Section ──────────────────────────────────────────────────────────────
 
 function FAQSection() {
@@ -2200,6 +2329,7 @@ function HomePage() {
       <ReviewsSection />
       <MedicalExperts />
       <LeadCaptureForm />
+      <TouchDownSection />
       <FAQSection />
       <ContactSection />
     </main>
@@ -2496,6 +2626,56 @@ function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [deleteTarget, setDeleteTarget] = useState<ProductView | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // ── TouchDown Gallery state ──────────────────────────────────────────────
+  const [activeTab, setActiveTab] = useState<"products" | "touchdown">(
+    "products",
+  );
+  const [touchdownImages, setTouchdownImages] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem("touchdown_images");
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [touchdownTitle, setTouchdownTitle] = useState<string>(
+    () => localStorage.getItem("touchdown_title") ?? "Our Touchdowns",
+  );
+  const [newImageUrl, setNewImageUrl] = useState("");
+  const [showAddImageForm, setShowAddImageForm] = useState(false);
+
+  const saveTouchdownImages = (imgs: string[]) => {
+    setTouchdownImages(imgs);
+    localStorage.setItem("touchdown_images", JSON.stringify(imgs));
+    window.dispatchEvent(new Event("touchdownImagesUpdated"));
+  };
+
+  const saveTouchdownTitle = (t: string) => {
+    setTouchdownTitle(t);
+    localStorage.setItem("touchdown_title", t);
+    window.dispatchEvent(new Event("touchdownImagesUpdated"));
+  };
+
+  const handleAddTouchdownImage = () => {
+    const url = newImageUrl.trim();
+    if (!url) return;
+    if (touchdownImages.length >= 20) {
+      toast.error("Maximum 20 images allowed.");
+      return;
+    }
+    const updated = [...touchdownImages, url];
+    saveTouchdownImages(updated);
+    setNewImageUrl("");
+    setShowAddImageForm(false);
+    toast.success("Image added to TouchDown gallery.");
+  };
+
+  const handleDeleteTouchdownImage = (index: number) => {
+    const updated = touchdownImages.filter((_, i) => i !== index);
+    saveTouchdownImages(updated);
+    toast.success("Image removed.");
+  };
+
   const fetchProducts = useCallback(async () => {
     if (!actor) return;
     setLoadingProducts(true);
@@ -2586,141 +2766,315 @@ function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
       {/* Dashboard Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Products</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Manage your product catalogue
-            </p>
-          </div>
-          <Button
-            onClick={handleAddClick}
-            className="bg-primary text-white hover:bg-primary/90"
-            data-ocid="admin.add_button"
+        {/* Tab switcher */}
+        <div className="flex items-center gap-1 mb-6 border-b border-border">
+          <button
+            type="button"
+            onClick={() => setActiveTab("products")}
+            className={`px-5 py-2.5 text-sm font-medium rounded-t-lg transition-colors -mb-px border border-transparent ${
+              activeTab === "products"
+                ? "bg-white border-border border-b-white text-primary shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            data-ocid="admin.products.tab"
           >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add New Product
-          </Button>
+            Products
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("touchdown")}
+            className={`px-5 py-2.5 text-sm font-medium rounded-t-lg transition-colors -mb-px border border-transparent ${
+              activeTab === "touchdown"
+                ? "bg-white border-border border-b-white text-primary shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            data-ocid="admin.touchdown.tab"
+          >
+            TouchDown Gallery
+          </button>
         </div>
 
-        {/* Products Table */}
-        <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
-          {loadingProducts ? (
-            <div
-              className="flex flex-col items-center justify-center py-16"
-              data-ocid="admin.loading_state"
-            >
-              <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
-              <p className="text-sm text-muted-foreground">
-                Loading products...
-              </p>
+        {activeTab === "products" && (
+          <>
+            {/* Products Page header */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Products</h1>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Manage your product catalogue
+                </p>
+              </div>
+              <Button
+                onClick={handleAddClick}
+                className="bg-primary text-white hover:bg-primary/90"
+                data-ocid="admin.add_button"
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add New Product
+              </Button>
             </div>
-          ) : products.length === 0 ? (
-            <div
-              className="flex flex-col items-center justify-center py-16 text-center"
-              data-ocid="admin.product.empty_state"
-            >
-              <ShoppingBag className="h-10 w-10 text-muted-foreground mb-3" />
-              <p className="text-base font-medium text-foreground">
-                No products yet
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Click "Add New Product" to get started.
-              </p>
+
+            {/* Products Table */}
+            <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
+              {loadingProducts ? (
+                <div
+                  className="flex flex-col items-center justify-center py-16"
+                  data-ocid="admin.loading_state"
+                >
+                  <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
+                  <p className="text-sm text-muted-foreground">
+                    Loading products...
+                  </p>
+                </div>
+              ) : products.length === 0 ? (
+                <div
+                  className="flex flex-col items-center justify-center py-16 text-center"
+                  data-ocid="admin.product.empty_state"
+                >
+                  <ShoppingBag className="h-10 w-10 text-muted-foreground mb-3" />
+                  <p className="text-base font-medium text-foreground">
+                    No products yet
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Click "Add New Product" to get started.
+                  </p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/40">
+                      <TableHead className="w-[280px]">Name</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Badge</TableHead>
+                      <TableHead className="text-right w-[140px]">
+                        Actions
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {products.map((product, index) => (
+                      <TableRow
+                        key={product.id}
+                        data-ocid={`admin.product.item.${index + 1}`}
+                        className="hover:bg-muted/20 transition-colors"
+                      >
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={product.imageUrl || PRODUCT_IMAGE}
+                              alt={product.name}
+                              className="w-10 h-10 rounded-lg object-cover shrink-0 border border-border"
+                            />
+                            <div>
+                              <p className="text-sm font-medium text-foreground">
+                                {product.name}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate max-w-[180px]">
+                                {product.tagline}
+                              </p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-muted-foreground">
+                            {product.category}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm font-medium text-primary">
+                            {product.price}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {product.badge ? (
+                            <Badge className="bg-accent/15 text-accent border-accent/30 text-xs">
+                              {product.badge}
+                            </Badge>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              —
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                              onClick={() => handleEditClick(product)}
+                              data-ocid={`admin.product.edit_button.${index + 1}`}
+                              aria-label={`Edit ${product.name}`}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={() => setDeleteTarget(product)}
+                              data-ocid={`admin.product.delete_button.${index + 1}`}
+                              aria-label={`Delete ${product.name}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/40">
-                  <TableHead className="w-[280px]">Name</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Badge</TableHead>
-                  <TableHead className="text-right w-[140px]">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {products.map((product, index) => (
-                  <TableRow
-                    key={product.id}
-                    data-ocid={`admin.product.item.${index + 1}`}
-                    className="hover:bg-muted/20 transition-colors"
+
+            {/* Product count */}
+            {!loadingProducts && products.length > 0 && (
+              <p className="text-xs text-muted-foreground mt-3">
+                {products.length} product{products.length !== 1 ? "s" : ""}{" "}
+                total
+              </p>
+            )}
+          </>
+        )}
+
+        {/* ── TouchDown Gallery Tab ─────────────────────────────────────── */}
+        {activeTab === "touchdown" && (
+          <div>
+            {/* Section title editor */}
+            <div className="bg-white rounded-xl border border-border shadow-sm p-6 mb-6">
+              <h2 className="text-lg font-semibold text-foreground mb-4">
+                Section Title
+              </h2>
+              <div className="flex items-center gap-3">
+                <Input
+                  value={touchdownTitle}
+                  onChange={(e) => saveTouchdownTitle(e.target.value)}
+                  placeholder="Our Touchdowns"
+                  className="max-w-xs h-10"
+                  data-ocid="admin.touchdown.input"
+                />
+                <span className="text-xs text-muted-foreground">
+                  Title shown in the TouchDown section on the homepage
+                </span>
+              </div>
+            </div>
+
+            {/* Images header */}
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Images
+                </h2>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {touchdownImages.length}/20 images · auto-scrolling right to
+                  left
+                </p>
+              </div>
+              <Button
+                onClick={() => setShowAddImageForm((v) => !v)}
+                className="bg-primary text-white hover:bg-primary/90"
+                data-ocid="admin.touchdown.add_button"
+                disabled={touchdownImages.length >= 20}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Image
+              </Button>
+            </div>
+
+            {/* Add image form */}
+            {showAddImageForm && (
+              <div className="bg-white border border-border rounded-xl p-5 mb-5 shadow-sm">
+                <p className="text-sm font-medium text-foreground mb-3">
+                  Paste an image URL below:
+                </p>
+                <div className="flex items-center gap-3">
+                  <Input
+                    value={newImageUrl}
+                    onChange={(e) => setNewImageUrl(e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                    className="flex-1 h-10"
+                    data-ocid="admin.touchdown.url_input"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleAddTouchdownImage();
+                    }}
+                  />
+                  <Button
+                    onClick={handleAddTouchdownImage}
+                    className="bg-primary text-white hover:bg-primary/90 shrink-0"
+                    data-ocid="admin.touchdown.save_button"
+                    disabled={!newImageUrl.trim()}
                   >
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={product.imageUrl || PRODUCT_IMAGE}
-                          alt={product.name}
-                          className="w-10 h-10 rounded-lg object-cover shrink-0 border border-border"
-                        />
-                        <div>
-                          <p className="text-sm font-medium text-foreground">
-                            {product.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate max-w-[180px]">
-                            {product.tagline}
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-muted-foreground">
-                        {product.category}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm font-medium text-primary">
-                        {product.price}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {product.badge ? (
-                        <Badge className="bg-accent/15 text-accent border-accent/30 text-xs">
-                          {product.badge}
-                        </Badge>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    Save
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowAddImageForm(false);
+                      setNewImageUrl("");
+                    }}
+                    data-ocid="admin.touchdown.cancel_button"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Images grid */}
+            {touchdownImages.length === 0 ? (
+              <div
+                className="bg-white rounded-xl border border-border shadow-sm py-16 text-center"
+                data-ocid="admin.touchdown.empty_state"
+              >
+                <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                  <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                    <PlusCircle className="h-6 w-6" />
+                  </div>
+                  <p className="text-base font-medium text-foreground">
+                    No images yet
+                  </p>
+                  <p className="text-sm">
+                    Click "Add Image" to add your first image URL.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {touchdownImages.map((src, index) => {
+                  return (
+                    <div
+                      // biome-ignore lint/suspicious/noArrayIndexKey: position-managed gallery, admin controls order
+                      key={`${src}-${index}`}
+                      className="relative group rounded-xl overflow-hidden border border-border shadow-sm aspect-square bg-muted"
+                      data-ocid={`admin.touchdown.item.${index + 1}`}
+                    >
+                      <img
+                        src={src}
+                        alt={`Gallery item ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <Button
-                          variant="ghost"
+                          variant="destructive"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                          onClick={() => handleEditClick(product)}
-                          data-ocid={`admin.product.edit_button.${index + 1}`}
-                          aria-label={`Edit ${product.name}`}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={() => setDeleteTarget(product)}
-                          data-ocid={`admin.product.delete_button.${index + 1}`}
-                          aria-label={`Delete ${product.name}`}
+                          className="h-9 w-9 shadow-lg"
+                          onClick={() => handleDeleteTouchdownImage(index)}
+                          data-ocid={`admin.touchdown.delete_button.${index + 1}`}
+                          aria-label={`Delete image ${index + 1}`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </div>
-
-        {/* Product count */}
-        {!loadingProducts && products.length > 0 && (
-          <p className="text-xs text-muted-foreground mt-3">
-            {products.length} product{products.length !== 1 ? "s" : ""} total
-          </p>
+                      <div className="absolute bottom-1.5 left-1.5 bg-black/60 text-white text-[10px] font-mono px-1.5 py-0.5 rounded">
+                        {index + 1}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         )}
       </main>
 

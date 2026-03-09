@@ -594,6 +594,117 @@ function Navigation() {
   );
 }
 
+// ─── Live Notification Widget ────────────────────────────────────────────────
+
+const LIVE_NOTIFICATIONS = [
+  { icon: "✅", title: "Consultation approved", sub: "Dr. Müller · just now" },
+  { icon: "📦", title: "Order dispatched", sub: "London · 1 min ago" },
+  {
+    icon: "✅",
+    title: "Consultation approved",
+    sub: "Dr. Schmidt · 2 min ago",
+  },
+  { icon: "💊", title: "Prescription issued", sub: "Dr. Weber · 3 min ago" },
+  { icon: "📦", title: "Order dispatched", sub: "Manchester · 4 min ago" },
+  {
+    icon: "✅",
+    title: "Consultation approved",
+    sub: "Dr. Fischer · 5 min ago",
+  },
+  { icon: "⭐", title: "New 5-star review", sub: "James T. · 6 min ago" },
+  { icon: "💊", title: "Prescription issued", sub: "Dr. Bauer · 7 min ago" },
+  { icon: "📦", title: "Order dispatched", sub: "Berlin · 8 min ago" },
+  { icon: "✅", title: "Consultation approved", sub: "Dr. Klein · 9 min ago" },
+  { icon: "⭐", title: "New 5-star review", sub: "Marco R. · 10 min ago" },
+  {
+    icon: "💊",
+    title: "Prescription issued",
+    sub: "Dr. Hoffmann · 11 min ago",
+  },
+  { icon: "📦", title: "Order dispatched", sub: "Munich · 12 min ago" },
+  { icon: "✅", title: "Consultation approved", sub: "Dr. Braun · 13 min ago" },
+  { icon: "⭐", title: "New 5-star review", sub: "Alex P. · 14 min ago" },
+  { icon: "💊", title: "Prescription issued", sub: "Dr. Wolf · 15 min ago" },
+  { icon: "📦", title: "Order dispatched", sub: "Hamburg · 16 min ago" },
+  {
+    icon: "✅",
+    title: "Consultation approved",
+    sub: "Dr. Richter · 17 min ago",
+  },
+  { icon: "⭐", title: "New 5-star review", sub: "Liam K. · 18 min ago" },
+  { icon: "💊", title: "Prescription issued", sub: "Dr. Neumann · 19 min ago" },
+  { icon: "📦", title: "Order dispatched", sub: "Vienna · 20 min ago" },
+  {
+    icon: "✅",
+    title: "Consultation approved",
+    sub: "Dr. Schwarz · 21 min ago",
+  },
+  { icon: "⭐", title: "New 5-star review", sub: "Oliver M. · 22 min ago" },
+  {
+    icon: "💊",
+    title: "Prescription issued",
+    sub: "Dr. Zimmermann · 23 min ago",
+  },
+  { icon: "📦", title: "Order dispatched", sub: "Zurich · 24 min ago" },
+  {
+    icon: "✅",
+    title: "Consultation approved",
+    sub: "Dr. Krause · 25 min ago",
+  },
+  { icon: "⭐", title: "New 5-star review", sub: "Noah B. · 26 min ago" },
+  {
+    icon: "💊",
+    title: "Prescription issued",
+    sub: "Dr. Hartmann · 27 min ago",
+  },
+  { icon: "📦", title: "Order dispatched", sub: "Amsterdam · 28 min ago" },
+  { icon: "✅", title: "Consultation approved", sub: "Dr. Lange · 29 min ago" },
+  { icon: "⭐", title: "New 5-star review", sub: "Ethan W. · 30 min ago" },
+  { icon: "💊", title: "Prescription issued", sub: "Dr. Köhler · 31 min ago" },
+];
+
+function LiveNotification() {
+  const [index, setIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setIndex((prev) => (prev + 1) % LIVE_NOTIFICATIONS.length);
+        setVisible(true);
+      }, 400);
+    }, 40000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const notif = LIVE_NOTIFICATIONS[index];
+
+  return (
+    <div
+      className="absolute bottom-6 left-6 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-xl max-w-[230px] transition-all duration-400"
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(8px)",
+      }}
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-lg">
+          {notif.icon}
+        </div>
+        <div>
+          <p className="text-xs font-semibold text-foreground leading-tight">
+            {notif.title}
+          </p>
+          <p className="text-xs text-muted-foreground leading-tight mt-0.5">
+            {notif.sub}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Hero Section ────────────────────────────────────────────────────────────
 
 function HeroSection() {
@@ -690,21 +801,7 @@ function HeroSection() {
                 loading="eager"
               />
               {/* Floating card */}
-              <div className="absolute bottom-6 left-6 bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-xl max-w-[220px]">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <CheckCircle2 className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">
-                      Consultation approved
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Dr. Müller · 2 min ago
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <LiveNotification />
             </div>
           </motion.div>
         </div>

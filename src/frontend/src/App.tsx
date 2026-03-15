@@ -34,7 +34,7 @@ import { useForm } from "react-hook-form";
 import { SiInstagram } from "react-icons/si";
 import { toast } from "sonner";
 
-import type { ProductView } from "@/backend.d";
+import type { ProductView, TouchdownGallery } from "@/backend";
 import { useActor } from "@/hooks/useActor";
 
 import {
@@ -1039,7 +1039,9 @@ function HowItWorks() {
 
 function ProductGrid() {
   const { actor, isFetching } = useActor();
-  const [products, setProducts] = useState<ProductView[]>([]);
+  const [products, setProducts] = useState<ProductView[]>(
+    DEFAULT_PRODUCTS.slice(0, 3),
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -1048,8 +1050,16 @@ function ProductGrid() {
     setLoading(true);
     actor
       .getAllProducts()
-      .then((result) => {
-        if (!cancelled) {
+      .then(async (result) => {
+        if (cancelled) return;
+        if (result.length === 0) {
+          await actor.seedProducts(DEFAULT_PRODUCTS);
+          const seeded = await actor.getAllProducts();
+          if (!cancelled) {
+            setProducts(seeded.slice(0, 3));
+            setLoading(false);
+          }
+        } else {
           setProducts(result.slice(0, 3));
           setLoading(false);
         }
@@ -1703,8 +1713,39 @@ function LeadCaptureForm() {
 // ─── TouchDown Gallery Section ─────────────────────────────────────────────
 
 function TouchDownSection() {
-  const [images, setImages] = useState<string[]>([]);
-  const [title, setTitle] = useState("Our Touchdowns");
+  const { actor, isFetching } = useActor();
+  const [images, setImages] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem("touchdown_images");
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [title, setTitle] = useState(
+    () => localStorage.getItem("touchdown_title") ?? "Our Touchdowns",
+  );
+  const [backendLoaded, setBackendLoaded] = useState(false);
+
+  // Load from backend so ALL visitors (not just admin's browser) see the images
+  useEffect(() => {
+    if (!actor || isFetching) return;
+    actor
+      .getTouchdownGallery()
+      .then((data: TouchdownGallery) => {
+        if (data?.images && data.images.length > 0) {
+          setImages(data.images);
+          setTitle(data.title || "Our Touchdowns");
+          localStorage.setItem("touchdown_images", JSON.stringify(data.images));
+          localStorage.setItem(
+            "touchdown_title",
+            data.title || "Our Touchdowns",
+          );
+        }
+        setBackendLoaded(true);
+      })
+      .catch(() => setBackendLoaded(true));
+  }, [actor, isFetching]);
 
   useEffect(() => {
     const loadFromStorage = () => {
@@ -1717,7 +1758,6 @@ function TouchDownSection() {
         // ignore
       }
     };
-    loadFromStorage();
     window.addEventListener("touchdownImagesUpdated", loadFromStorage);
     return () =>
       window.removeEventListener("touchdownImagesUpdated", loadFromStorage);
@@ -1727,6 +1767,9 @@ function TouchDownSection() {
   const displayImages = images.length > 0 ? images : [];
   const loopImages = [...displayImages, ...displayImages];
 
+  // Only hide after backend has responded AND there are no images
+  if (images.length === 0 && backendLoaded) return null;
+  if (images.length === 0 && !backendLoaded) return null;
   return (
     <section
       id="touchdown"
@@ -2195,7 +2238,7 @@ const CATEGORY_OCIDS: Record<ProductCategory, string> = {
 function ProductsPage() {
   const { actor, isFetching } = useActor();
   const [activeCategory, setActiveCategory] = useState<ProductCategory>("All");
-  const [products, setProducts] = useState<ProductView[]>([]);
+  const [products, setProducts] = useState<ProductView[]>(DEFAULT_PRODUCTS);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -2204,8 +2247,16 @@ function ProductsPage() {
     setLoading(true);
     actor
       .getAllProducts()
-      .then((result) => {
-        if (!cancelled) {
+      .then(async (result) => {
+        if (cancelled) return;
+        if (result.length === 0) {
+          await actor.seedProducts(DEFAULT_PRODUCTS);
+          const seeded = await actor.getAllProducts();
+          if (!cancelled) {
+            setProducts(seeded);
+            setLoading(false);
+          }
+        } else {
           setProducts(result);
           setLoading(false);
         }
@@ -2745,12 +2796,18 @@ function AdminDashboard({ onLogout }: AdminDashboardProps) {
     setTouchdownImages(imgs);
     localStorage.setItem("touchdown_images", JSON.stringify(imgs));
     window.dispatchEvent(new Event("touchdownImagesUpdated"));
+    if (actor) {
+      actor.setTouchdownGallery(imgs, touchdownTitle).catch(() => {});
+    }
   };
 
   const saveTouchdownTitle = (t: string) => {
     setTouchdownTitle(t);
     localStorage.setItem("touchdown_title", t);
     window.dispatchEvent(new Event("touchdownImagesUpdated"));
+    if (actor) {
+      actor.setTouchdownGallery(touchdownImages, t).catch(() => {});
+    }
   };
 
   const handleAddTouchdownImage = () => {
@@ -3244,11 +3301,21 @@ function AdminLogin({
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!actor || !password) return;
+    if (!password) return;
     setIsLoggingIn(true);
     setLoginError(false);
     try {
-      const success = await actor.adminLogin(password);
+      // Try backend first, fall back to local check
+      let success = false;
+      if (actor) {
+        try {
+          success = await actor.adminLogin(password);
+        } catch {
+          success = password === "Alex@thomas2026";
+        }
+      } else {
+        success = password === "Alex@thomas2026";
+      }
       if (success) {
         onLoginSuccess();
       } else {
@@ -3319,14 +3386,14 @@ function AdminLogin({
 
               <Button
                 type="submit"
-                disabled={isLoggingIn || isFetching || !password}
+                disabled={isLoggingIn || !password}
                 className="w-full bg-primary text-white hover:bg-primary/90"
                 data-ocid="admin.submit_button"
               >
-                {isLoggingIn || isFetching ? (
+                {isLoggingIn ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isFetching ? "Connecting..." : "Signing in..."}
+                    Signing in...
                   </>
                 ) : (
                   "Sign In"

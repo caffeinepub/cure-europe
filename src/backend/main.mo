@@ -36,6 +36,11 @@ actor {
     imageUrls : [Text];
   };
 
+  type TouchdownGallery = {
+    images : [Text];
+    title : Text;
+  };
+
   module Lead {
     public func compare(lead1 : Lead, lead2 : Lead) : Order.Order {
       Text.compare(lead1.email, lead2.email);
@@ -50,6 +55,9 @@ actor {
 
   let leads = Map.empty<Text, Lead>();
   let products = Map.empty<Text, Product>();
+
+  var touchdownImages : [Text] = [];
+  var touchdownTitle : Text = "Our Touchdowns";
 
   func toProductView(product : Product) : ProductView {
     {
@@ -161,6 +169,15 @@ actor {
       products.add(product.id, internalProduct);
     };
     true;
+  };
+
+  public shared ({ caller }) func setTouchdownGallery(images : [Text], title : Text) : async () {
+    touchdownImages := images;
+    touchdownTitle := title;
+  };
+
+  public query ({ caller }) func getTouchdownGallery() : async TouchdownGallery {
+    { images = touchdownImages; title = touchdownTitle };
   };
 
   public query ({ caller }) func adminLogin(password : Text) : async Bool {

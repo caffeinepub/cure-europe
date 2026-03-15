@@ -103,6 +103,7 @@ export interface Lead {
     name: string;
     email: string;
 }
+export interface TouchdownGallery { images: Array<string>; title: string; }
 export interface backendInterface {
     addLead(name: string, email: string): Promise<void>;
     addProduct(id: string, name: string, tagline: string, price: string, badge: string, category: string, imageUrl: string, imageUrlsArray: Array<string>): Promise<void>;
@@ -114,6 +115,8 @@ export interface backendInterface {
     getProduct(id: string): Promise<ProductView | null>;
     seedProducts(newProducts: Array<ProductView>): Promise<boolean>;
     updateProduct(id: string, name: string, tagline: string, price: string, badge: string, category: string, imageUrl: string, imageUrlsArray: Array<string>): Promise<boolean>;
+    getTouchdownGallery(): Promise<TouchdownGallery>;
+    setTouchdownGallery(images: Array<string>, title: string): Promise<void>;
 }
 import type { ProductView as _ProductView } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -255,6 +258,34 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.updateProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+            return result;
+        }
+    }
+    async getTouchdownGallery(): Promise<TouchdownGallery> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getTouchdownGallery();
+                return { images: Array.from(result.images), title: result.title };
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getTouchdownGallery();
+            return { images: Array.from(result.images), title: result.title };
+        }
+    }
+    async setTouchdownGallery(arg0: Array<string>, arg1: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.setTouchdownGallery(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.setTouchdownGallery(arg0, arg1);
             return result;
         }
     }

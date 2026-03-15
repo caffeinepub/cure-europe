@@ -57,6 +57,8 @@ export const idlService = IDL.Service({
       [IDL.Bool],
       [],
     ),
+  'getTouchdownGallery' : IDL.Func([], [IDL.Record({'images': IDL.Vec(IDL.Text), 'title': IDL.Text})], ['query']),
+  'setTouchdownGallery' : IDL.Func([IDL.Vec(IDL.Text), IDL.Text], [], []),
 });
 
 export const idlInitArgs = [];
@@ -111,6 +113,8 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Bool],
         [],
       ),
+    'getTouchdownGallery' : IDL.Func([], [IDL.Record({'images': IDL.Vec(IDL.Text), 'title': IDL.Text})], ['query']),
+    'setTouchdownGallery' : IDL.Func([IDL.Vec(IDL.Text), IDL.Text], [], []),
   });
 };
 

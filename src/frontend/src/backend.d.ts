@@ -21,6 +21,10 @@ export interface Lead {
     name: string;
     email: string;
 }
+export interface TouchdownGallery {
+    images: Array<string>;
+    title: string;
+}
 export interface backendInterface {
     addLead(name: string, email: string): Promise<void>;
     addProduct(id: string, name: string, tagline: string, price: string, badge: string, category: string, imageUrl: string, imageUrlsArray: Array<string>): Promise<void>;
@@ -32,4 +36,6 @@ export interface backendInterface {
     getProduct(id: string): Promise<ProductView | null>;
     seedProducts(newProducts: Array<ProductView>): Promise<boolean>;
     updateProduct(id: string, name: string, tagline: string, price: string, badge: string, category: string, imageUrl: string, imageUrlsArray: Array<string>): Promise<boolean>;
+    getTouchdownGallery(): Promise<TouchdownGallery>;
+    setTouchdownGallery(images: Array<string>, title: string): Promise<void>;
 }

@@ -7,6 +7,14 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export interface Lead {
+    name: string;
+    email: string;
+}
+export interface TouchdownGallery {
+    title: string;
+    images: Array<string>;
+}
 export interface ProductView {
     id: string;
     imageUrls: Array<string>;
@@ -17,14 +25,6 @@ export interface ProductView {
     badge: string;
     price: string;
 }
-export interface Lead {
-    name: string;
-    email: string;
-}
-export interface TouchdownGallery {
-    images: Array<string>;
-    title: string;
-}
 export interface backendInterface {
     addLead(name: string, email: string): Promise<void>;
     addProduct(id: string, name: string, tagline: string, price: string, badge: string, category: string, imageUrl: string, imageUrlsArray: Array<string>): Promise<void>;
@@ -34,8 +34,8 @@ export interface backendInterface {
     getAllProducts(): Promise<Array<ProductView>>;
     getLead(email: string): Promise<Lead>;
     getProduct(id: string): Promise<ProductView | null>;
-    seedProducts(newProducts: Array<ProductView>): Promise<boolean>;
-    updateProduct(id: string, name: string, tagline: string, price: string, badge: string, category: string, imageUrl: string, imageUrlsArray: Array<string>): Promise<boolean>;
     getTouchdownGallery(): Promise<TouchdownGallery>;
+    seedProducts(newProducts: Array<ProductView>): Promise<boolean>;
     setTouchdownGallery(images: Array<string>, title: string): Promise<void>;
+    updateProduct(id: string, name: string, tagline: string, price: string, badge: string, category: string, imageUrl: string, imageUrlsArray: Array<string>): Promise<boolean>;
 }

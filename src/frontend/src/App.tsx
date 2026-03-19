@@ -34,7 +34,11 @@ import { useForm } from "react-hook-form";
 import { SiInstagram } from "react-icons/si";
 import { toast } from "sonner";
 
-import type { ProductView, TouchdownGallery } from "@/backend";
+import type {
+  ProductView,
+  TouchdownGallery,
+  backendInterface,
+} from "@/backend";
 import { useActor } from "@/hooks/useActor";
 
 import {
@@ -674,7 +678,7 @@ function LiveNotification() {
         setIndex((prev) => (prev + 1) % LIVE_NOTIFICATIONS.length);
         setVisible(true);
       }, 400);
-    }, 40000);
+    }, 20000);
     return () => clearInterval(interval);
   }, []);
 
@@ -1089,7 +1093,7 @@ function ProductGrid() {
             className="text-4xl md:text-5xl font-medium tracking-tight mt-3 text-foreground"
             style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
           >
-            Our Treatments
+            Bestseller
           </h2>
           <p className="mt-4 text-base text-muted-foreground max-w-lg mx-auto">
             Clinically proven protocols designed by European medical
@@ -1158,22 +1162,6 @@ function ProductGrid() {
                       {product.price}
                     </p>
                   </CardContent>
-                  <CardFooter className="flex flex-col gap-2">
-                    <Button
-                      asChild
-                      className="w-full rounded-full bg-primary text-white hover:bg-primary/90 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
-                      data-ocid={`products.buy_now_button.${index + 1}`}
-                    >
-                      <a
-                        href={WHATSAPP_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <MessageCircle className="mr-2 h-4 w-4" />
-                        Buy Now
-                      </a>
-                    </Button>
-                  </CardFooter>
                 </Card>
               </motion.div>
             ))}
@@ -1536,7 +1524,8 @@ function LeadCaptureForm() {
       });
       reset();
       setTreatmentValue("");
-    } catch {
+    } catch (err) {
+      console.error("Product save error:", err);
       toast.error("Something went wrong. Please try again.", {
         description: "If the problem persists, please contact support.",
       });
@@ -1718,7 +1707,8 @@ function TouchDownSection() {
     try {
       const stored = localStorage.getItem("touchdown_images");
       return stored ? JSON.parse(stored) : [];
-    } catch {
+    } catch (err) {
+      console.error("Product save error:", err);
       return [];
     }
   });
@@ -1754,7 +1744,8 @@ function TouchDownSection() {
         const storedTitle = localStorage.getItem("touchdown_title");
         if (stored) setImages(JSON.parse(stored));
         if (storedTitle) setTitle(storedTitle);
-      } catch {
+      } catch (err) {
+        console.error("Product save error:", err);
         // ignore
       }
     };
@@ -2521,7 +2512,7 @@ function ProductFormSheet({
   editingProduct,
   onSaved,
 }: ProductFormSheetProps) {
-  const { actor } = useActor();
+  const { actor, isFetching } = useActor();
   const [isSaving, setIsSaving] = useState(false);
   const [categoryValue, setCategoryValue] = useState("");
 
@@ -2563,7 +2554,10 @@ function ProductFormSheet({
   }, [editingProduct, setValue, reset]);
 
   const onSubmit = async (data: ProductFormData) => {
-    if (!actor) return;
+    if (!actor || isFetching) {
+      toast.error("Connection not ready. Please wait a moment and try again.");
+      return;
+    }
     if (!categoryValue) {
       toast.error("Please select a category.");
       return;
@@ -2603,8 +2597,10 @@ function ProductFormSheet({
       toast.success("Product saved");
       onOpenChange(false);
       onSaved();
-    } catch {
-      toast.error("Failed to save product. Please try again.");
+    } catch (err) {
+      console.error("Product save error:", err);
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      toast.error(`Failed to save product: ${msg.slice(0, 100)}`);
     } finally {
       setIsSaving(false);
     }
@@ -2782,7 +2778,8 @@ function AdminDashboard({ onLogout }: AdminDashboardProps) {
     try {
       const stored = localStorage.getItem("touchdown_images");
       return stored ? JSON.parse(stored) : [];
-    } catch {
+    } catch (err) {
+      console.error("Product save error:", err);
       return [];
     }
   });
@@ -2843,7 +2840,8 @@ function AdminDashboard({ onLogout }: AdminDashboardProps) {
       } else {
         setProducts(result);
       }
-    } catch {
+    } catch (err) {
+      console.error("Product save error:", err);
       toast.error("Failed to load products.");
     } finally {
       setLoadingProducts(false);
@@ -2877,7 +2875,8 @@ function AdminDashboard({ onLogout }: AdminDashboardProps) {
       toast.success("Product deleted");
       setDeleteTarget(null);
       fetchProducts();
-    } catch {
+    } catch (err) {
+      console.error("Product save error:", err);
       toast.error("Failed to delete product.");
     } finally {
       setIsDeleting(false);
@@ -3310,7 +3309,8 @@ function AdminLogin({
       if (actor) {
         try {
           success = await actor.adminLogin(password);
-        } catch {
+        } catch (err) {
+          console.error("Product save error:", err);
           success = password === "Alex@thomas2026";
         }
       } else {
@@ -3321,7 +3321,8 @@ function AdminLogin({
       } else {
         setLoginError(true);
       }
-    } catch {
+    } catch (err) {
+      console.error("Product save error:", err);
       setLoginError(true);
     } finally {
       setIsLoggingIn(false);

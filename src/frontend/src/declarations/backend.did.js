@@ -19,6 +19,10 @@ export const ProductView = IDL.Record({
   'badge' : IDL.Text,
   'price' : IDL.Text,
 });
+export const TouchdownGallery = IDL.Record({
+  'title' : IDL.Text,
+  'images' : IDL.Vec(IDL.Text),
+});
 
 export const idlService = IDL.Service({
   'addLead' : IDL.Func([IDL.Text, IDL.Text], [], []),
@@ -42,7 +46,9 @@ export const idlService = IDL.Service({
   'getAllProducts' : IDL.Func([], [IDL.Vec(ProductView)], ['query']),
   'getLead' : IDL.Func([IDL.Text], [Lead], ['query']),
   'getProduct' : IDL.Func([IDL.Text], [IDL.Opt(ProductView)], ['query']),
+  'getTouchdownGallery' : IDL.Func([], [TouchdownGallery], ['query']),
   'seedProducts' : IDL.Func([IDL.Vec(ProductView)], [IDL.Bool], []),
+  'setTouchdownGallery' : IDL.Func([IDL.Vec(IDL.Text), IDL.Text], [], []),
   'updateProduct' : IDL.Func(
       [
         IDL.Text,
@@ -57,8 +63,6 @@ export const idlService = IDL.Service({
       [IDL.Bool],
       [],
     ),
-  'getTouchdownGallery' : IDL.Func([], [IDL.Record({'images': IDL.Vec(IDL.Text), 'title': IDL.Text})], ['query']),
-  'setTouchdownGallery' : IDL.Func([IDL.Vec(IDL.Text), IDL.Text], [], []),
 });
 
 export const idlInitArgs = [];
@@ -74,6 +78,10 @@ export const idlFactory = ({ IDL }) => {
     'category' : IDL.Text,
     'badge' : IDL.Text,
     'price' : IDL.Text,
+  });
+  const TouchdownGallery = IDL.Record({
+    'title' : IDL.Text,
+    'images' : IDL.Vec(IDL.Text),
   });
   
   return IDL.Service({
@@ -98,7 +106,9 @@ export const idlFactory = ({ IDL }) => {
     'getAllProducts' : IDL.Func([], [IDL.Vec(ProductView)], ['query']),
     'getLead' : IDL.Func([IDL.Text], [Lead], ['query']),
     'getProduct' : IDL.Func([IDL.Text], [IDL.Opt(ProductView)], ['query']),
+    'getTouchdownGallery' : IDL.Func([], [TouchdownGallery], ['query']),
     'seedProducts' : IDL.Func([IDL.Vec(ProductView)], [IDL.Bool], []),
+    'setTouchdownGallery' : IDL.Func([IDL.Vec(IDL.Text), IDL.Text], [], []),
     'updateProduct' : IDL.Func(
         [
           IDL.Text,
@@ -113,8 +123,6 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Bool],
         [],
       ),
-    'getTouchdownGallery' : IDL.Func([], [IDL.Record({'images': IDL.Vec(IDL.Text), 'title': IDL.Text})], ['query']),
-    'setTouchdownGallery' : IDL.Func([IDL.Vec(IDL.Text), IDL.Text], [], []),
   });
 };
 

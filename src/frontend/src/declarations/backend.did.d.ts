@@ -21,7 +21,7 @@ export interface ProductView {
   'badge' : string,
   'price' : string,
 }
-export interface TouchdownGallery { 'images' : Array<string>, 'title' : string }
+export interface TouchdownGallery { 'title' : string, 'images' : Array<string> }
 export interface _SERVICE {
   'addLead' : ActorMethod<[string, string], undefined>,
   'addProduct' : ActorMethod<
@@ -34,8 +34,8 @@ export interface _SERVICE {
   'getAllProducts' : ActorMethod<[], Array<ProductView>>,
   'getLead' : ActorMethod<[string], Lead>,
   'getProduct' : ActorMethod<[string], [] | [ProductView]>,
-  'seedProducts' : ActorMethod<[Array<ProductView>], boolean>,
   'getTouchdownGallery' : ActorMethod<[], TouchdownGallery>,
+  'seedProducts' : ActorMethod<[Array<ProductView>], boolean>,
   'setTouchdownGallery' : ActorMethod<[Array<string>, string], undefined>,
   'updateProduct' : ActorMethod<
     [string, string, string, string, string, string, string, Array<string>],
